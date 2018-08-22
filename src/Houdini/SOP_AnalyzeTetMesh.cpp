@@ -56,17 +56,19 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     delete detail_gen;
 
     // Set up analysis primitive attributes.
-    auto shortest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shortest_edge", 1));
-    auto longest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "longest_edge", 1));
+    //auto shortest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shortest_edge", 1));
+    //auto longest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "longest_edge", 1));
     //auto shape_quality_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shape_quality", 1));
     //auto aspect_ratio_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "aspect_ratio", 1));
-    auto min_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "min_dihedral_angle", 1));
-    auto max_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "max_dihedral_angle", 1));
+    //auto min_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "min_dihedral_angle", 1));
+    //auto max_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "max_dihedral_angle", 1));
 
     // Set up analysis point attributes
     auto boundary_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "boundary", 1));
+    auto nonmanifold_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "nonmanifold", 1));
 
     // Calculate attributes and assign values.
+    /*
     tet_mesh->ResetTetIterator();
     auto tet = tet_mesh->NextTet();
     while(tet != nullptr) {
@@ -81,12 +83,14 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
 
         tet = tet_mesh->NextTet();
     }
+    */
 
-    tet_mesh->FlagAllBoundaryNodes();
+    //tet_mesh->FlagAllBoundaryNodes();
     tet_mesh->ResetNodeIterator();
     auto node = tet_mesh->NextNode();
     while(node != nullptr) {
         boundary_handle.set(node->Id(), (node->IsBoundary() ? 1 : 0) );
+        nonmanifold_handle.set(node->Id(), (node->IsNonManifold() ? 1 : 0 ) );
         node = tet_mesh->NextNode();
     }
 

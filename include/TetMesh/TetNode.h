@@ -32,6 +32,8 @@ namespace destroyer {
 
         bool IsBoundary() const;
 
+        bool IsNonManifold() const;
+
         // Returns the edge incident to this node that is connected to the passed node.
         // If this node is not connected to the passed node, return nullptr.
         TetEdgeRef GetEdgeTo(TetNodeRef node) const;

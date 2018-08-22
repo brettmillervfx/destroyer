@@ -20,7 +20,7 @@ public:
     bool IsBoundary() const;
 
     // Return the edge opposite the passed node on the face.
-    TetEdgeRef GetOppositeEdge(TetNodeRef node) const;
+    TetEdgeRef GetOppositeEdge(const TetNodeRef node) const;
 
     // Return the edge anti-clockwise from the passed node.
     TetEdgeRef GetRightEdge(TetNodeRef node) const;

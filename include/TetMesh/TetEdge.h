@@ -56,6 +56,8 @@ public:
 
     Real Length() const;
 
+    bool IsNonManifold() const;
+
 
 private:
     std::array<TetNodeRef,2> nodes_;

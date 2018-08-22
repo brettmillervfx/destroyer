@@ -51,7 +51,7 @@ bool TetFace::IsBoundary() const {
 
 }
 
-TetEdgeRef TetFace::GetOppositeEdge(TetNodeRef node) const {
+TetEdgeRef TetFace::GetOppositeEdge(const TetNodeRef node) const {
 
     // The edge that does not contain the node is opposite of the node.
     for (auto edge_index: {0,1,2}) {

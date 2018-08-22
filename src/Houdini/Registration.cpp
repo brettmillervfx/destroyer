@@ -8,7 +8,7 @@
 
 #include "Houdini/SOP_TetrahedralizeVDB.h"
 #include "Houdini/SOP_RefineTetrahedra.h"
-//#include "Houdini/SOP_AnalyzeTetMesh.h"
+#include "Houdini/SOP_AnalyzeTetMesh.h"
 //#include "Houdini/SOP_CompressTetMesh.h"
 //#include "Houdini/SOP_CleanupTetMesh.h"
 
@@ -46,7 +46,7 @@ newSopOperator(OP_OperatorTable *table)
     opRefineTetrahedra->setOpTabSubMenuPath("Weta");
     table->addOperator(opRefineTetrahedra);
 
-    /*
+
     OP_Operator *opAnalyzeTetMesh;
     opAnalyzeTetMesh = new OP_Operator(
             "AnalyzeTetMesh",
@@ -60,6 +60,7 @@ newSopOperator(OP_OperatorTable *table)
     opAnalyzeTetMesh->setOpTabSubMenuPath("Weta");
     table->addOperator(opAnalyzeTetMesh);
 
+    /*
     OP_Operator *opCompressTetMesh;
     opCompressTetMesh = new OP_Operator(
             "CompressTetMesh",

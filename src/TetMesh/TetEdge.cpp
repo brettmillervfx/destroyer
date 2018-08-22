@@ -169,5 +169,12 @@ Real TetEdge::Length() const {
 
 }
 
+bool TetEdge::IsNonManifold() const {
+
+    // The edge is considered non-manifold if more that two boundary faces are connected to it.
+    return (IncidentBoundaryFaceCount()>2);
+
+}
+
 }; // namespace destroyer
 

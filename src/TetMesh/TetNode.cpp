@@ -2,6 +2,8 @@
 // Created by Brett Miller on 8/15/18.
 //
 
+#include <iostream>
+
 #include "TetMesh/TetNode.h"
 #include "TetMesh/TetFace.h"
 #include "TetMesh/TetEdge.h"
@@ -87,6 +89,61 @@ bool TetNode::IsBoundary() const {
         if (face->IsBoundary())
             return true;
     }
+    return false;
+
+}
+
+bool TetNode::IsNonManifold() const {
+
+    // A node can only be non-manifold if it lies on the boundary.
+    if (!IsBoundary())
+        return false;
+
+    // If a node is connected to a non-manifold edge, it is considered non-manifold.
+    for (auto& edge: incident_edges_) {
+        if (edge->IsNonManifold())
+            return true;
+    }
+
+    // If a node has more than one edge ring, it is considered non-manifold.
+    // First, filter the boundary faces and collect the edge rings.
+    std::vector<TetEdgeRef> ring_edges;
+
+    for (auto& face: incident_faces_) {
+        if (face->IsBoundary())
+            ring_edges.push_back(face->GetOppositeEdge(TetNodeRef(this)));
+    }
+
+    auto ring_edge_count = ring_edges.size();
+    int traversed_edges = 1;
+    int current_edge = 0;
+    auto head_node = ring_edges[0]->GetFirstNode();
+    auto current_node = ring_edges[0]->GetOtherNode(head_node);
+    do {
+        traversed_edges++;
+
+        // Find the edge that isn't this one that has the current node.
+        int new_edge = 0;
+        while (current_edge<ring_edge_count) {
+            if ((current_edge!=new_edge)&(ring_edges[new_edge]->HasNode(current_node))) {
+                current_edge = new_edge;
+                current_node = ring_edges[current_edge]->GetOtherNode(current_node);
+                break;
+            }
+            new_edge++;
+        }
+
+        // Unlikely scenario...
+        if (new_edge == ring_edge_count)
+            return false;
+
+    } while (current_node!=head_node);
+
+    // If we've traversed an entire edge loop and there are still more edges, we have multiple edge loops.
+    if (traversed_edges<ring_edge_count)
+        return true;
+
+    // All clear.
     return false;
 
 }
