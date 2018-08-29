@@ -10,7 +10,7 @@
 #include "Houdini/SOP_RefineTetrahedra.h"
 #include "Houdini/SOP_AnalyzeTetMesh.h"
 //#include "Houdini/SOP_CompressTetMesh.h"
-//#include "Houdini/SOP_CleanupTetMesh.h"
+#include "Houdini/SOP_CleanupTetMesh.h"
 
 
 
@@ -73,18 +73,19 @@ newSopOperator(OP_OperatorTable *table)
 
     opCompressTetMesh->setOpTabSubMenuPath("Weta");
     table->addOperator(opCompressTetMesh);
+    */
 
-    OP_Operator *opCleanupTetMesh;
+     OP_Operator *opCleanupTetMesh;
     opCleanupTetMesh = new OP_Operator(
             "CleanupTetMesh",
             "Cleanup Tet Mesh",
             destroyer::SOP_CleanupTetMesh::myConstructor,
             destroyer::SOP_CleanupTetMesh::myTemplateList,
-            2,
-            2,
+            1,
+            1,
             nullptr);
 
     opCleanupTetMesh->setOpTabSubMenuPath("Weta");
     table->addOperator(opCleanupTetMesh);
-    */
+
 }

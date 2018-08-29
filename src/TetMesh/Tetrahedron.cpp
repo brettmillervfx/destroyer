@@ -14,20 +14,46 @@ namespace destroyer {
 
 // Edge and Face identification tables
 
+// Given 2 nodes, this table provides the connecting edge.
 constexpr EdgeIndex NODE_TABLE[4][4] =
         {   { NO_EDGE, EDGE_0_1, EDGE_0_2, EDGE_0_3 },
             { EDGE_0_1, NO_EDGE, EDGE_1_2, EDGE_1_3 },
             { EDGE_0_2, EDGE_1_2, NO_EDGE, EDGE_2_3 },
             { EDGE_0_3, EDGE_1_3, EDGE_2_3, NO_EDGE } };
 
+// Given an edge, this table provides the comprising nodes.
 constexpr std::array<std::array<int,2>,6> EDGE_TABLE {{
     {{0,1}}, {{0,2}}, {{0,3}}, {{1,2}}, {{2,3}}, {{1,3}} }};
 
+// Given a face, this table provides the comprising edges.
 constexpr std::array<std::array<EdgeIndex,3>,4> FACE_TABLE {{
-    {{EdgeIndex::EDGE_0_1,EdgeIndex::EDGE_1_2,EdgeIndex::EDGE_0_2}},
-    {{EdgeIndex::EDGE_0_2,EdgeIndex::EDGE_2_3,EdgeIndex::EDGE_0_3}},
-    {{EdgeIndex::EDGE_0_3,EdgeIndex::EDGE_1_3,EdgeIndex::EDGE_0_1}},
-    {{EdgeIndex::EDGE_1_2,EdgeIndex::EDGE_2_3,EdgeIndex::EDGE_1_3}} }};
+    {{ EDGE_0_1, EDGE_1_2, EDGE_0_2}},
+    {{ EDGE_0_2, EDGE_2_3, EDGE_0_3}},
+    {{ EDGE_0_3, EDGE_1_3, EDGE_0_1}},
+    {{ EDGE_1_2, EDGE_2_3, EDGE_1_3}} }};
+
+// Given an edge, this table provides the two face that share that edge.
+constexpr std::array<std::array<FaceIndex,2>,6> INCIDENT_FACE_TABLE {{
+    {{FACE_0_1_2, FACE_0_3_1}},
+    {{FACE_0_1_2, FACE_0_2_3}},
+    {{FACE_0_2_3, FACE_0_3_1}},
+    {{FACE_0_1_2, FACE_1_2_3}},
+    {{FACE_0_2_3, FACE_1_2_3}},
+    {{FACE_0_3_1, FACE_1_2_3}} }};
+
+// Given a node, this table provides the three connected edges.
+constexpr std::array<std::array<EdgeIndex,3>,4> ADJACENT_EDGES_TABLE {{
+    {{ EDGE_0_1, EDGE_0_2, EDGE_0_3}},
+    {{ EDGE_1_2, EDGE_1_3, EDGE_0_1}},
+    {{ EDGE_0_2, EDGE_1_2, EDGE_2_3}},
+    {{ EDGE_0_3, EDGE_1_3, EDGE_2_3}} }};
+
+// Given a node, this table provides the three connected faces.
+constexpr std::array<std::array<FaceIndex,3>,4> ADJACENT_FACES_TABLE {{
+    {{ FACE_0_1_2, FACE_0_2_3, FACE_0_3_1}},
+    {{ FACE_0_1_2, FACE_0_3_1, FACE_1_2_3}},
+    {{ FACE_0_1_2, FACE_0_2_3, FACE_1_2_3}},
+    {{ FACE_0_2_3, FACE_0_3_1, FACE_1_2_3}} }};
 
 // Given two edges, this table provides the edge that completes the
 // loop, ie. the last co-planar edge completing the face.
@@ -45,23 +71,6 @@ constexpr EdgeIndex EDGE_COMPLETE_TABLE[7][7] =
 
 ///////////////////////////////////////////////
 
-Tetrahedron::Tetrahedron(TetNodeRef n0, TetNodeRef n1, TetNodeRef n2, TetNodeRef n3, Index id) {
-
-    // TODO Is it valid to produce a tet without a tet_mesh?
-    id_ = id;
-
-    tet_mesh_ = nullptr;
-
-    nodes_[0] = n0;
-    n0->ConnectTetrahedron(this);
-    nodes_[1] = n1;
-    n1->ConnectTetrahedron(this);
-    nodes_[2] = n2;
-    n2->ConnectTetrahedron(this);
-    nodes_[3] = n3;
-    n3->ConnectTetrahedron(this);
-
-}
 
 Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetNodeRef n2, TetNodeRef n3, Index id) {
 
@@ -172,31 +181,90 @@ TetNodeRef Tetrahedron::SplitEdge(int node0, int node1) {
 
 }
 
+EdgeIndex Tetrahedron::GetEdgeIndex(TetEdgeRef edge) const {
+
+    for (auto index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3}) {
+        if (edges_[index] == edge)
+            return index;
+    }
+    return NO_EDGE;
+
+}
+
+void Tetrahedron::ReplaceEdge(EdgeIndex index, TetEdgeRef edge) {
+
+    // If the edge already matches, we have nothing to do.
+    if (edges_[index] != edge) {
+
+        // First make changes to the incident faces.
+        auto faces = GetFacesIncidentTo(index);
+        faces[0]->ReplaceEdge(edge);
+        faces[1]->ReplaceEdge(edge);
+
+        // Then replace the edge.
+        edges_[index]->DisconnectTetrahedron(this);
+        edges_[index] = edge;
+        edges_[index]->ConnectTetrahedron(this);
+
+    }
+
+}
+
+bool Tetrahedron::HasFace(TetFaceRef face) const {
+
+    for (auto& f: faces_)
+        if (f == face)
+            return true;
+
+    return false;
+
+}
+
+bool Tetrahedron::SharesFaceWith(TetrahedronRef other) const {
+
+    for (auto& f: faces_)
+        if (other->HasFace(f))
+            return true;
+
+    return false;
+
+}
+
+bool Tetrahedron::HasEdge(TetEdgeRef edge) const {
+
+    for (auto& e: edges_)
+        if (e == edge)
+            return true;
+
+    return false;
+
+}
+
+bool Tetrahedron::SharesEdgeWith(TetrahedronRef other) const {
+
+    for (auto& e: edges_)
+        if (other->HasEdge(e))
+            return true;
+
+    return false;
+
+}
+
+std::array<TetFaceRef,2> Tetrahedron::GetFacesIncidentTo(EdgeIndex index) const {
+
+    std::array<TetFaceRef,2> incident_faces;
+
+    incident_faces[0] = faces_[INCIDENT_FACE_TABLE[index][0]];
+    incident_faces[1] = faces_[INCIDENT_FACE_TABLE[index][1]];
+
+    return incident_faces;
+
+}
+
 void Tetrahedron::ClassifySplitEdgeConfiguration() {
 
     // Apply bitmask flags to cache which of the tet's 6 edges are split.
     split_edges_bitmask_.reset();
-    /*
-    TetEdgeRef edge;
-    edge = nodes_[0]->GetEdgeTo(nodes_[1]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_0_1);
-    edge = nodes_[0]->GetEdgeTo(nodes_[2]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_0_2);
-    edge = nodes_[0]->GetEdgeTo(nodes_[3]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_0_3);
-    edge = nodes_[1]->GetEdgeTo(nodes_[2]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_1_2);
-    edge = nodes_[2]->GetEdgeTo(nodes_[3]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_2_3);
-    edge = nodes_[1]->GetEdgeTo(nodes_[3]);
-    if ((edge != nullptr) & (edge->Midpoint() != nullptr))
-        split_edges_bitmask_.set(EDGE_1_3);
-    */
     for (auto index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3}) {
         if (edges_[index]->HasMidpoint())
             split_edges_bitmask_.set(index);

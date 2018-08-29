@@ -13,6 +13,7 @@
 #include "TetMesh/TetNode.h"
 #include "gtest/gtest.h"
 
+
 TEST(RefinementTetMeshTest, test_single_full_refinement) {
     auto mesh = new destroyer::RefinementTetMesh();
 
@@ -300,4 +301,182 @@ TEST(RefinementTetMeshTest, test_green_two_to_three) {
     EXPECT_EQ(nodeCount, 21);
 
     delete mesh;
+}
+
+TEST(RefinementTetMeshTest, test_nonmanifold_edge_resolution) {
+    auto mesh = new destroyer::RefinementTetMesh();
+
+    auto n0 = mesh->AddNode(0,0,0);
+    auto n1 = mesh->AddNode(0,1,0);
+    auto n2 = mesh->AddNode(0,0,1);
+    auto n3 = mesh->AddNode(0,1,0);
+    auto n4 = mesh->AddNode(0,0,2);
+    auto n5 = mesh->AddNode(2,1,0);
+
+    mesh->AddTetrahedron(n0,n1,n2,n3, 666);
+    mesh->AddTetrahedron(n0,n1,n4,n5, 7);
+
+    mesh->RefineNonManifold();
+
+    mesh->ResetTetIterator();
+    auto t = mesh->NextTet();
+    int regular666 = 0;
+    int regular7 = 0;
+    while(t != nullptr) {
+        switch(t->Id()) {
+            case 666:
+                regular666++;
+                break;
+            case 7:
+                regular7++;
+                break;
+        }
+        t = mesh->NextTet();
+    }
+
+    EXPECT_EQ(regular666,0);
+    EXPECT_EQ(regular7,2);
+
+    int nodeCount = 0;
+    mesh->ResetNodeIterator();
+    auto n = mesh->NextNode();
+    while(n != nullptr) {
+        nodeCount++;
+        n = mesh->NextNode();
+    }
+
+    EXPECT_EQ(nodeCount, 5);
+
+    delete mesh;
+}
+
+TEST(RefinementTetMeshTest, test_nonmanifold_node_resolution) {
+    auto mesh = new destroyer::RefinementTetMesh();
+
+    auto n0 = mesh->AddNode(0,0,0);
+    auto n1 = mesh->AddNode(0,1,0);
+    auto n2 = mesh->AddNode(0,0,1);
+    auto n3 = mesh->AddNode(0,1,0);
+    auto n4 = mesh->AddNode(0,0,2);
+    auto n5 = mesh->AddNode(2,1,0);
+    auto n6 = mesh->AddNode(2,1,0);
+
+    mesh->AddTetrahedron(n0,n1,n2,n3, 666);
+    mesh->AddTetrahedron(n0,n4,n5,n6, 7);
+
+    mesh->RefineNonManifold();
+
+    mesh->ResetTetIterator();
+    auto t = mesh->NextTet();
+    int regular666 = 0;
+    int regular7 = 0;
+    while(t != nullptr) {
+        switch(t->Id()) {
+            case 666:
+                regular666++;
+                break;
+            case 7:
+                regular7++;
+                break;
+        }
+        t = mesh->NextTet();
+    }
+
+    EXPECT_EQ(regular666,0);
+    EXPECT_EQ(regular7,1);
+
+    int nodeCount = 0;
+    mesh->ResetNodeIterator();
+    auto n = mesh->NextNode();
+    while(n != nullptr) {
+        nodeCount++;
+        n = mesh->NextNode();
+    }
+
+    EXPECT_EQ(nodeCount, 4);
+
+    delete mesh;
+}
+
+TEST(RefinementTetMeshTest, test_nonmanifold_node_resolution_multiples) {
+    auto mesh = new destroyer::RefinementTetMesh();
+
+    auto n0 = mesh->AddNode(0,0,0);
+    auto n1 = mesh->AddNode(0,1,0);
+    auto n2 = mesh->AddNode(0,0,1);
+    auto n3 = mesh->AddNode(0,1,0);
+    auto n4 = mesh->AddNode(0,0,2);
+    auto n5 = mesh->AddNode(2,1,0);
+    auto n6 = mesh->AddNode(2,1,0);
+    auto n7 = mesh->AddNode(2,1,0);
+
+    mesh->AddTetrahedron(n0,n1,n2,n3, 666);
+    mesh->AddTetrahedron(n0,n1,n2,n7, 667);
+    mesh->AddTetrahedron(n0,n4,n5,n6, 7);
+
+    mesh->RefineNonManifold();
+
+    int nodeCount = 0;
+    mesh->ResetNodeIterator();
+    auto n = mesh->NextNode();
+    while(n != nullptr) {
+        nodeCount++;
+        n = mesh->NextNode();
+    }
+
+    EXPECT_EQ(nodeCount, 4);
+
+    delete mesh;
+}
+
+TEST(RefinementTetMeshTest, test_nonmanifold_edge_resolution_double_butterfly) {
+    auto mesh = new destroyer::RefinementTetMesh();
+
+    auto axis0 = mesh->AddNode(0, 0, 0);
+    auto axis1 = mesh->AddNode(0, 1, 0);
+    auto n0 = mesh->AddNode(0, 0, 1);
+    auto n1 = mesh->AddNode(0, 1, 0);
+    auto n2 = mesh->AddNode(0, 0, 2);
+    auto p0 = mesh->AddNode(2, 1, 0);
+    auto p1 = mesh->AddNode(2, 1, 0);
+    auto p2 = mesh->AddNode(2, 1, 0);
+
+    mesh->AddTetrahedron(axis0, axis1, n0, n1, 666);
+    mesh->AddTetrahedron(axis0, axis1, n1, n2, 666);
+    mesh->AddTetrahedron(axis0, axis1, p0, p1, 7);
+    mesh->AddTetrahedron(axis0, axis1, p1, p2, 7);
+
+    mesh->RefineNonManifold();
+
+    mesh->ResetTetIterator();
+    auto t = mesh->NextTet();
+    int regular666 = 0;
+    int regular7 = 0;
+    while (t != nullptr) {
+        switch (t->Id()) {
+            case 666:
+                regular666++;
+                break;
+            case 7:
+                regular7++;
+                break;
+        }
+        t = mesh->NextTet();
+    }
+
+    EXPECT_EQ(regular666, 0);
+    EXPECT_EQ(regular7, 4);
+
+    int nodeCount = 0;
+    mesh->ResetNodeIterator();
+    auto n = mesh->NextNode();
+    while (n != nullptr) {
+        nodeCount++;
+        n = mesh->NextNode();
+    }
+
+    EXPECT_EQ(nodeCount, 6);
+
+    delete mesh;
+
 }

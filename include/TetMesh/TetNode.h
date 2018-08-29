@@ -10,55 +10,62 @@
 
 namespace destroyer {
 
-    class TetNode {
-    public:
-        TetNode(Real x, Real y, Real z, Index id=0);
-        TetNode(Vec3 position, Index id=0);
-        ~TetNode() = default;
+class TetNode {
+public:
+    TetNode(Real x, Real y, Real z, Index id=0);
+    TetNode(Vec3 position, Index id=0);
+    ~TetNode() = default;
 
-        Vec3 Position() const;
-        void SetPosition(Vec3 position);
+    Vec3 Position() const;
+    void SetPosition(Vec3 position);
 
-        Index Id() const;
-        void SetId(Index id);
+    Index Id() const;
+    void SetId(Index id);
 
-        uint Depth() const;
-        void SetDepth(uint depth);
+    uint Depth() const;
+    void SetDepth(uint depth);
 
-        Real Sdf() const;
-        void SetSdf(Real sdf);
+    Real Sdf() const;
+    void SetSdf(Real sdf);
 
-        bool IsConnected() const;
+    bool IsConnected() const;
 
-        bool IsBoundary() const;
+    bool IsBoundary() const;
 
-        bool IsNonManifold() const;
+    bool IsNonManifold() const;
 
-        // Returns the edge incident to this node that is connected to the passed node.
-        // If this node is not connected to the passed node, return nullptr.
-        TetEdgeRef GetEdgeTo(TetNodeRef node) const;
+    std::vector<TetEdgeRef> GetFirstEdgeRing() const;
 
-        // Register and deregister tetrahedron connections.
-        void ConnectTetrahedron(TetrahedronRef tet);
-        void DisconnectTetrahedron(TetrahedronRef tet);
+    std::vector<TetrahedronRef> GetIncidentTets() const;
 
-        // Register and deregister faces.
-        void ConnectFace(TetFaceRef face);
-        void DisconnectFace(TetFaceRef face);
+    // Returns the edge incident to this node that is connected to the passed node.
+    // If this node is not connected to the passed node, return nullptr.
+    TetEdgeRef GetEdgeTo(TetNodeRef node) const;
 
-        // Register and deregister edges.
-        void ConnectEdge(TetEdgeRef edge);
-        void DisconnectEdge(TetEdgeRef edge);
+    // Register and deregister tetrahedron connections.
+    void ConnectTetrahedron(TetrahedronRef tet);
+    void DisconnectTetrahedron(TetrahedronRef tet);
 
-    private:
-        Vec3 position_;
-        Index id_;
-        uint depth_;
-        Real sdf_;
-        std::vector<TetEdgeRef> incident_edges_;
-        std::vector<TetFaceRef> incident_faces_;
-        std::vector<TetrahedronRef> incident_tets_;
+    // Register and deregister faces.
+    void ConnectFace(TetFaceRef face);
+    void DisconnectFace(TetFaceRef face);
 
-    };
+    // Register and deregister edges.
+    void ConnectEdge(TetEdgeRef edge);
+    void DisconnectEdge(TetEdgeRef edge);
+
+private:
+    std::vector<TetEdgeRef> GetAllRingEdges() const;
+
+private:
+    Vec3 position_;
+    Index id_;
+    uint depth_;
+    Real sdf_;
+    std::vector<TetEdgeRef> incident_edges_;
+    std::vector<TetFaceRef> incident_faces_;
+    std::vector<TetrahedronRef> incident_tets_;
+
+};
 
 }; // namespace destroyer

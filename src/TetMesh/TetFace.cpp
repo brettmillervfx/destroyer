@@ -51,6 +51,27 @@ bool TetFace::IsBoundary() const {
 
 }
 
+TetrahedronRef TetFace::GetFirstTet() const {
+
+    if (!incident_tets_.empty())
+        return incident_tets_[0];
+    else
+        return nullptr;
+}
+
+TetrahedronRef TetFace::GetOtherTet(TetrahedronRef tet) const {
+
+    if (incident_tets_.size() < 2)
+        return nullptr;
+    if (incident_tets_[0] == tet)
+        return incident_tets_[1];
+    else if (incident_tets_[1] == tet)
+        return incident_tets_[0];
+    else
+        return nullptr;
+
+}
+
 TetEdgeRef TetFace::GetOppositeEdge(const TetNodeRef node) const {
 
     // The edge that does not contain the node is opposite of the node.
@@ -84,6 +105,25 @@ TetEdgeRef TetFace::GetLeftEdge(TetNodeRef node) const {
     }
     return nullptr;
 
+}
+
+
+void TetFace::ReplaceEdge(TetEdgeRef edge) {
+
+    // Which edge is it?
+    auto node0 = edge->GetFirstNode();
+    auto node1 = edge->GetOtherNode(node0);
+
+    for (int i: {0,1,2}) {
+        if (edges_[i]->HasNode(node0) & edges_[i]->HasNode(node1)) {
+            if (edges_[i] != edge) {
+                edges_[i]->DisconnectFace(this);
+                edges_[i] = edge;
+                edges_[i]->ConnectFace(this);
+            }
+            break;
+        }
+    }
 }
 
 void TetFace::ConnectTetrahedron(TetrahedronRef tet) {

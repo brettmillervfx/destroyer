@@ -21,8 +21,7 @@ public:
     // Apply Red Green Hierarchical Refinement to tets in an ID group.
     void RefineIdGroup(const std::set<Index> id_group);
 
-    // Ensure that topology will be wel behaved in an FEM solve.
-    // void Cleanup(int culldepth=2);
+    void RefineNonManifold(int max_iterations=2);
 
 private:
     void PropagateRefinement();
@@ -43,7 +42,9 @@ private:
 
     void IrregularSubdivideTetrahedronThree(TetrahedronRef tet);
 
-    //void RepairNonManifoldBoundary();
+    // Returns the number of components corrected
+    int RefineNonManifoldEdges();
+    int RefineNonManifoldNodes();
 
 private:
     std::set<TetrahedronRef> refine_list_;

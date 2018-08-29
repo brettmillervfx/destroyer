@@ -18,10 +18,14 @@
 namespace destroyer {
 
 
+static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
+static PRM_Default max_iter_prm_default(3);
 
-PRM_Template
+
+    PRM_Template
         SOP_CleanupTetMesh::myTemplateList[] = {
-        PRM_Template(),
+            PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
+            PRM_Template(),
 };
 
 
@@ -50,6 +54,7 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
 
     duplicateSource(0, context);
 
+    /*
     // An SDF sampler wil be necessary for tetrahedra culling and surface compression.
     auto sdf_sampler = std::make_shared<VDBSampler>(inputGeo(1, context));
 
@@ -57,22 +62,25 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
         addError(SOP_ERR_INVALID_SRC, "No SDF VDB found in second input.");
         return error();
     }
+    */
 
     // Collect parameters.
     auto now = context.getTime();
 
-    // No parameters currently
+    auto max_iter = evalInt("maxIter", 0, now);
 
     // Instantiate an empty TetMesh.
-    auto tet_mesh = std::make_shared<RefinementTetMesh>(sdf_sampler);
+    //auto tet_mesh = std::make_shared<RefinementTetMesh>(sdf_sampler);
+    auto tet_mesh = std::make_shared<RefinementTetMesh>();
 
     // Fill the TetMesh using detail geometry.
     auto detail_generator = new DetailGenerator(tet_mesh, gdp);
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    tet_mesh->Cleanup();
+    tet_mesh->RefineNonManifold(max_iter);
 
+    tet_mesh->DeleteUnusedTopology();
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
@@ -94,8 +102,8 @@ SOP_CleanupTetMesh::inputLabel(unsigned idx) const
     {
         case 0:
             return "Tet Mesh Geo";
-        case 1:
-            return "VDB Level Set";
+        //case 1:
+        //    return "VDB Level Set";
         default:
             return "default";
     }

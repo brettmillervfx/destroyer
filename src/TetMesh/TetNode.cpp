@@ -94,37 +94,59 @@ bool TetNode::IsBoundary() const {
 }
 
 bool TetNode::IsNonManifold() const {
+    //std::cout << "is nonmanifold in " << std::endl;
 
     // A node can only be non-manifold if it lies on the boundary.
     if (!IsBoundary())
         return false;
+    //std::cout << "is nonmanifold edge " << std::endl;
 
     // If a node is connected to a non-manifold edge, it is considered non-manifold.
     for (auto& edge: incident_edges_) {
         if (edge->IsNonManifold())
             return true;
     }
+    //std::cout << "is nonmanifold ring " << std::endl;
 
     // If a node has more than one edge ring, it is considered non-manifold.
     // First, filter the boundary faces and collect the edge rings.
-    std::vector<TetEdgeRef> ring_edges;
-
-    for (auto& face: incident_faces_) {
-        if (face->IsBoundary())
-            ring_edges.push_back(face->GetOppositeEdge(TetNodeRef(this)));
-    }
-
+    auto ring_edges = GetAllRingEdges();
     auto ring_edge_count = ring_edges.size();
-    int traversed_edges = 1;
+    //std::cout << "is nonmanifold ringA " << std::endl;
+
+    auto first_edge_ring = GetFirstEdgeRing();
+    auto first_ring_count = first_edge_ring.size();
+    //std::cout << "is nonmanifold ringB" << std::endl;
+
+    // If we've traversed an entire edge loop and there are still more edges, we have multiple edge loops.
+    if (first_ring_count < ring_edge_count)
+        return true;
+
+    //std::cout << "is nonmanifold clear" << std::endl;
+    // All clear.
+    return false;
+
+}
+
+std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
+
+    //std::cout << "here goes" << std::endl;
+    auto ring_edges = GetAllRingEdges();
+    auto ring_edge_count = ring_edges.size();
+
+    std::vector<TetEdgeRef> first_ring_edges;
+
     int current_edge = 0;
+    first_ring_edges.push_back(ring_edges[current_edge]);
     auto head_node = ring_edges[0]->GetFirstNode();
     auto current_node = ring_edges[0]->GetOtherNode(head_node);
     do {
-        traversed_edges++;
 
         // Find the edge that isn't this one that has the current node.
         int new_edge = 0;
-        while (current_edge<ring_edge_count) {
+        while (new_edge<ring_edge_count) {
+            //std::cout << "is nonmanifold ring 3 " << new_edge << "/" << ring_edge_count << std::endl;
+            //std::cout << "Neat " << ring_edges[new_edge]->HasMidpoint() << std::endl;
             if ((current_edge!=new_edge)&(ring_edges[new_edge]->HasNode(current_node))) {
                 current_edge = new_edge;
                 current_node = ring_edges[current_edge]->GetOtherNode(current_node);
@@ -132,19 +154,23 @@ bool TetNode::IsNonManifold() const {
             }
             new_edge++;
         }
+        first_ring_edges.push_back(ring_edges[current_edge]);
 
         // Unlikely scenario...
-        if (new_edge == ring_edge_count)
-            return false;
+        if (new_edge == ring_edge_count) {
+            std::cout << "Never found the head" << std::endl;
+            break;
+        }
 
     } while (current_node!=head_node);
 
-    // If we've traversed an entire edge loop and there are still more edges, we have multiple edge loops.
-    if (traversed_edges<ring_edge_count)
-        return true;
+    return first_ring_edges;
 
-    // All clear.
-    return false;
+}
+
+std::vector<TetrahedronRef> TetNode::GetIncidentTets() const {
+
+    return incident_tets_;
 
 }
 
@@ -197,6 +223,22 @@ void TetNode::DisconnectEdge(TetEdgeRef edge) {
     auto found = std::find(incident_edges_.begin(), incident_edges_.end(), edge);
     if (found != incident_edges_.end())
         incident_edges_.erase(found);
+
+}
+
+std::vector<TetEdgeRef> TetNode::GetAllRingEdges() const {
+
+    // Filter the boundary faces and collect the edges forming rings around this node.
+    std::vector<TetEdgeRef> ring_edges;
+
+    //std::cout << "I have " << incident_faces_.size() << " faces" << std::endl;
+
+    for (auto& face: incident_faces_) {
+        if (face->IsBoundary())
+            ring_edges.push_back(face->GetOppositeEdge(TetNodeRef(this)));
+    }
+
+    return ring_edges;
 
 }
 

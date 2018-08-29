@@ -32,8 +32,6 @@ enum FaceIndex {
 
 class Tetrahedron {
 public:
-    // Constructor without TetMesh reference will not build topology.
-    Tetrahedron(TetNodeRef n0, TetNodeRef n1, TetNodeRef n2, TetNodeRef n3, Index id=0);
     Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetNodeRef n2, TetNodeRef n3, Index id=0);
     ~Tetrahedron();
 
@@ -51,6 +49,18 @@ public:
 
     TetNodeRef SplitEdge(EdgeIndex index);
     TetNodeRef SplitEdge(int node0, int node1);
+
+    EdgeIndex GetEdgeIndex(TetEdgeRef edge) const;
+
+    void ReplaceEdge(EdgeIndex index, TetEdgeRef edge);
+
+    bool HasFace(TetFaceRef face) const;
+    bool SharesFaceWith(TetrahedronRef other) const;
+    bool HasEdge(TetEdgeRef edge) const;
+    bool SharesEdgeWith(TetrahedronRef other) const;
+
+    // Get the 2 faces sharing an edge.
+    std::array<TetFaceRef,2> GetFacesIncidentTo(EdgeIndex index) const;
 
     // If one of the edges is "interior" (ie. both nodes are boundary although the edge is not),
     // return that edge. Otherwise return nullptr.

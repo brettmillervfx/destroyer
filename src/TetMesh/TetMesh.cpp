@@ -106,15 +106,10 @@ bool TetMesh::IsEmpty() const {
 void TetMesh::TearDown() {
 
     // Important to do this in the correct order.
-    //std::cout << "A\n";
     tets_.clear();
-    //std::cout << "b\n";
     faces_.clear();
-    //std::cout << "c\n";
     edges_.clear();
-    //std::cout << "d\n";
     nodes_.clear();
-    //std::cout << "e\n";
 
 }
 

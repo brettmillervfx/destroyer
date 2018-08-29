@@ -19,6 +19,9 @@ public:
     // Return true if the face is on the TetMesh boundary.
     bool IsBoundary() const;
 
+    TetrahedronRef GetFirstTet() const;
+    TetrahedronRef GetOtherTet(TetrahedronRef tet) const;
+
     // Return the edge opposite the passed node on the face.
     TetEdgeRef GetOppositeEdge(const TetNodeRef node) const;
 
@@ -27,6 +30,8 @@ public:
 
     // Return the edge clockwise from the passed node.
     TetEdgeRef GetLeftEdge(TetNodeRef node) const;
+
+    void ReplaceEdge(TetEdgeRef edge);
 
     void ConnectTetrahedron(TetrahedronRef tet);
     void DisconnectTetrahedron(TetrahedronRef tet);

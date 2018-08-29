@@ -6,10 +6,12 @@
 #include "TetMesh/RefinementTetMesh.h"
 
 #include <iostream>
+#include <queue>
 
 #include "TetMesh/Tetrahedron.h"
 #include "TetMesh/TetNode.h"
 #include "TetMesh/TetEdge.h"
+#include "TetMesh/TetFace.h"
 
 namespace destroyer {
 
@@ -29,42 +31,23 @@ void RefinementTetMesh::RefineIdGroup(const std::set<Index> id_group) {
 
 }
 
-/*
-void RefinementTetMesh::Cleanup(int culldepth) {
+void RefinementTetMesh::RefineNonManifold(int max_iterations) {
 
-    // The TetMesh must abide the following rules:
-    //      * the boundary must be a manifold
-    //      * no tetrahedron may have all four nodes on the boundary
-    //      * and no interior edge may connect two boundary nodes.
+    auto iter = max_iterations;
+    while (iter > 0) {
 
-    refine_list_.clear();
-    FlagAllBoundaryNodes();
+        auto corrected_edge_count = RefineNonManifoldEdges();
+        auto corrected_node_count = RefineNonManifoldNodes();
+        DeleteUnusedTopology();
 
-    for (auto& tet: tet_list_) {
-        auto boundary_node_count = tet.second->BoundaryNodeCount();
+        if (corrected_edge_count==0 & corrected_node_count==0)
+            break;
 
-        if (boundary_node_count == 2) {
-
-            SplitInteriorEdge(tet.first);
-
-        } else if (boundary_node_count == 4) {
-
-            tet.second->ClassifySplitEdgeConfiguration();
-            PrepTetForRedRefinement(tet.first);
-
-        }
-
+        iter--;
     }
 
-    PropagateRefinement();
-
-    SubdivideRefinedTets();
-
-    CullOutsideTets(culldepth);
-
-    RepairNonManifoldBoundary();
 }
-*/
+
 void RefinementTetMesh::PropagateRefinement() {
 
     // Find all potential Red tets in the refinement list. Split their edges and add adjacent tets.
@@ -346,17 +329,148 @@ void RefinementTetMesh::IrregularSubdivideTetrahedronThree(TetrahedronRef tet) {
     DeleteTetrahedron(tet);
 
 }
-/*
-void RefinementTetMesh::RepairNonManifoldBoundary() {
 
-    // NonManifold boundaries occur when a boundary node is surrounded by
-    // two or more distinct vertex rings.
-    FlagAllBoundaryNodes();
-    for (auto& node: node_list_) {
+int RefinementTetMesh::RefineNonManifoldEdges() {
+
+    refine_list_.clear();
+
+    // Iterate boundary edges and store refs for any non-manifolds we encounter.
+    std::queue<TetEdgeRef> nonmanifold_edges;
+    for (auto& edge: edges_)
+        if (edge.second->IsNonManifold())
+            nonmanifold_edges.push(edge.first);
+
+    if (nonmanifold_edges.empty())
+        return false;
+
+    int correction_count = 0;
+
+    // Duplicate non-manifold edges and apply new edge to half the incident tets.
+    // Both the old tet and new tet are split.
+    while (!nonmanifold_edges.empty()) {
+        auto edge = nonmanifold_edges.front();
+        nonmanifold_edges.pop();
+
+        // All incident tets will require refinement.
+        for (auto tet: edge->GetIncidentTets())
+            refine_list_.insert(tet);
+
+        // Create a duplicate edge.
+        auto node0 = edge->GetFirstNode();
+        auto node1 = edge->GetOtherNode(node0);
+        auto duplicate_edge = AddEdge(node0, node1);
+
+        // Get the first boundary face and its single connected tet.
+        auto current_face = edge->GetIncidentBoundaryFaces()[0];
+        auto current_tet = current_face->GetFirstTet();
+
+        while(true) {
+
+            // Get the face that shares an edge with the face on this tet.
+            auto edge_index = current_tet->GetEdgeIndex(edge);
+            auto incident_faces = current_tet->GetFacesIncidentTo(edge_index);
+            auto next_face = (incident_faces[0] == current_face) ? incident_faces[1] : incident_faces[0];
+
+            // Replace the edge on this tet.
+            current_tet->ReplaceEdge(edge_index, duplicate_edge);
+
+            // If the next face is boundary, we're done.
+            if (next_face->IsBoundary())
+                break;
+
+            // Otherwise, get the next tet attached to that face.
+            current_tet = next_face->GetOtherTet(current_tet);
+            current_face = next_face;
+
+        }
+
+        // Split both the old edge and the new duplicate.
+        auto mid = edge->MidpointPosition();
+        edge->SetMidpoint(AddNode(mid[0], mid[1], mid[2]));
+        duplicate_edge->SetMidpoint(AddNode(mid[0], mid[1], mid[2]));
+
+        correction_count++;
 
     }
 
+    // We can directly refine the incident tets without bothering to propagate since all
+    // subdivided tets are "green".
+    SubdivideRefinedTets();
+
+    return correction_count;
+
 }
-*/
+
+int RefinementTetMesh::RefineNonManifoldNodes() {
+
+    // Iterate nodes and store refs for any non-manifolds we encounter.
+    std::queue<TetNodeRef> nonmanifold_nodes;
+    for (auto& node: nodes_) {
+        if (node->IsNonManifold())
+            nonmanifold_nodes.push(node.get());
+    }
+
+    if (nonmanifold_nodes.empty()) {
+        return false;
+    }
+
+    int correction_count = 0;
+
+    // Replace non-manifold node with a duplicate on one of the edge rings.
+    while (!nonmanifold_nodes.empty()) {
+
+        auto node = nonmanifold_nodes.front();
+        nonmanifold_nodes.pop();
+
+        // Collect the tets attached to the ring edge
+        auto edge_ring = node->GetFirstEdgeRing();
+        std::vector<TetrahedronRef> ring_tets;
+        for (auto tet: node->GetIncidentTets()) {
+            for (auto& edge: edge_ring) {
+                if (tet->GetEdgeIndex(edge) != NO_EDGE) {
+                    ring_tets.push_back(tet);
+                    break;
+                }
+            }
+        }
+
+        std::vector<TetrahedronRef> expanded_search;
+        for (auto& tet: node->GetIncidentTets()) {
+
+            // If tet is not already selected...
+            if (std::find(ring_tets.begin(), ring_tets.end(), tet) == ring_tets.end()) {
+                // ...and if shares and edge or face with a ring tet...
+                for (auto& ring_tet: ring_tets) {
+                    if (tet->SharesFaceWith(ring_tet) | tet->SharesEdgeWith(ring_tet)) {
+                        expanded_search.push_back(tet);
+                        break;
+                    }
+                }
+            }
+        }
+        ring_tets.insert( ring_tets.end(), expanded_search.begin(), expanded_search.end() );
+
+        if (ring_tets.size() == node->GetIncidentTets().size()) {
+
+            // Infrequent case: the node is a pinch point between two surfaces.
+            // We assume that this is actually a hole that hasn't been captured due to resolution.
+            // So we delete all tets that use the node.
+            for (auto& tet: node->GetIncidentTets())
+                DeleteTetrahedron(tet);
+
+        } else {
+
+            // Generally, we eliminate all the tets on one side of the non-manifold node.
+            for (auto& tet: ring_tets)
+                DeleteTetrahedron(tet);
+
+        }
+
+        correction_count++;
+    }
+
+    return correction_count;
+
+}
 
 }; // namespace destroyer
