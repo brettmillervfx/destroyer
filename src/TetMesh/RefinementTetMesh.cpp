@@ -31,20 +31,35 @@ void RefinementTetMesh::RefineIdGroup(const std::set<Index> id_group) {
 
 }
 
-void RefinementTetMesh::RefineNonManifold(int max_iterations) {
+bool RefinementTetMesh::Cleanup(int max_iterations) {
 
     auto iter = max_iterations;
-    while (iter > 0) {
+    bool done = false;
+    while ((iter > 0) & !done) {
 
-        auto corrected_edge_count = RefineNonManifoldEdges();
-        auto corrected_node_count = RefineNonManifoldNodes();
-        DeleteUnusedTopology();
+        done = true;
 
-        if (corrected_edge_count==0 & corrected_node_count==0)
-            break;
+        auto lone_count = RefineLoneTets();
+        done &= (lone_count==0);
+
+        auto weak_ext_count = RemoveWeakExteriorTets();
+        done &= (weak_ext_count==0);
+
+        auto weak_int_count = SplitWeakInteriorEdges();
+        done &= (weak_int_count==0);
+
+        auto nm_edge_count = RefineNonManifoldEdges();
+        done &= (nm_edge_count==0);
+
+        auto nm_node_count = RefineNonManifoldNodes();
+        done &= (nm_node_count==0);
 
         iter--;
     }
+
+    DeleteUnusedTopology();
+
+    return done;
 
 }
 
@@ -70,50 +85,32 @@ void RefinementTetMesh::PropagateRefinement() {
 
 }
 
-/*
 void RefinementTetMesh::SplitInteriorEdge(TetrahedronRef tet) {
 
-    // Test if the edge is interior. If so, it will need to be split.
-    // If the edge is not interior, there will be two incident tets that contains
-    // both the boundary nodes and a third boundary node.
+    // This tet has two boundary face. The edge shared by the remaining faces is interior
+    // although both nodes are on the boundary. This configuration is weak and should be
+    // split into two elements for simulation.
+    if (tet->BoundaryFaceCount()==2) {
 
-    // Get the two nodes comprising the interior edge.
-    TetNodeRef ref0 = nullptr;
-    TetNodeRef ref1 = nullptr;
-    for (Index i = 0; i<4; i++) {
-        auto node = tet->GetNodeRef(i);
-        if (node->IsBoundary()) {
-            if (ref0 == nullptr)
-                ref0 = node;
-            else
-                ref1 = node;
-        }
-    }
+        refine_list_.insert(tet);
 
-    // For any tet that contains both nodes, are there three boundary nodes?
-    bool is_interior = true;
-    ref0->ResetConnectedTetsIterator();
-    auto connected_tet = ref0->NextConnectedTet();
-    while (connected_tet != nullptr) {
-        if (connected_tet->HasNode(ref1)){
-            if (connected_tet->BoundaryNodeCount() > 2)
-                is_interior = false;
-        }
-        connected_tet = ref0->NextConnectedTet();
-    }
+        for (auto index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3}) {
 
-    if (is_interior) {
-        SplitEdge(ref0, ref1);
-        ref0->ResetConnectedTetsIterator();
-        auto connected_tet = ref0->NextConnectedTet();
-        while (connected_tet != nullptr) {
-            connected_tet->ClassifySplitEdgeConfiguration();
-            refine_list_.insert(connected_tet);
-            connected_tet = ref0->NextConnectedTet();
+            auto incident_faces = tet->GetFacesIncidentTo(index);
+            bool face0_is_interior = !incident_faces[0]->IsBoundary();
+            bool face1_is_interior = !incident_faces[1]->IsBoundary();
+            if (face0_is_interior & face1_is_interior) {
+                tet->SplitEdge(index);
+                auto incident_tets = tet->GetEdgeRef(index)->GetIncidentTets();
+                for (auto& other_tet: incident_tets)
+                    refine_list_.insert(other_tet);
+                break;
+            }
         }
+
     }
 }
-*/
+
 void RefinementTetMesh::SubdivideTetrahedron(TetrahedronRef tet) {
 
     // For convenience, capture all the tet's original nodes and all the edge split midpoints.
@@ -327,6 +324,62 @@ void RefinementTetMesh::IrregularSubdivideTetrahedronThree(TetrahedronRef tet) {
 
     // Find and delete the original.
     DeleteTetrahedron(tet);
+
+}
+
+int RefinementTetMesh::RefineLoneTets() {
+
+    // Any detached tets should be subdivided to ensure that they are stable enough
+    // for FEM simulation.
+    int lone_count = 0;
+
+    refine_list_.clear();
+    for (auto& tet: tets_) {
+        if (tet.first->BoundaryFaceCount() == 4) {
+            PrepTetForRedRefinement(tet.first);
+            lone_count++;
+        }
+    }
+
+    SubdivideRefinedTets();
+
+    return lone_count;
+
+}
+
+int RefinementTetMesh::RemoveWeakExteriorTets() {
+
+    // We define a weak exterior tet as one that is only connected to the contiguous mesh
+    // on one face. Such Tets are eliminated.
+    int weak_ext_count = 0;
+
+    for (auto& tet: tets_) {
+        if (tet.first->BoundaryFaceCount() == 3) {
+            DeleteTetrahedron(tet.first);
+            weak_ext_count++;
+        }
+    }
+
+    return weak_ext_count;
+
+}
+
+int RefinementTetMesh::SplitWeakInteriorEdges() {
+
+    int weak_int_count = 0;
+
+    refine_list_.clear();
+    for (auto& tet: tets_) {
+        if (tet.first->BoundaryFaceCount() == 2) {
+            SplitInteriorEdge(tet.first);
+            weak_int_count++;
+        }
+    }
+
+    PropagateRefinement();
+    SubdivideRefinedTets();
+
+    return weak_int_count;
 
 }
 

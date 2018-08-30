@@ -21,12 +21,13 @@ public:
     // Apply Red Green Hierarchical Refinement to tets in an ID group.
     void RefineIdGroup(const std::set<Index> id_group);
 
-    void RefineNonManifold(int max_iterations=2);
+    bool Cleanup(int max_iterations=2);
+
 
 private:
     void PropagateRefinement();
 
-    // void SplitInteriorEdge(TetrahedronRef tet);
+    void SplitInteriorEdge(TetrahedronRef tet);
 
     void PrepTetForGreenRefinement(TetrahedronRef tet);
 
@@ -43,6 +44,9 @@ private:
     void IrregularSubdivideTetrahedronThree(TetrahedronRef tet);
 
     // Returns the number of components corrected
+    int RefineLoneTets();
+    int RemoveWeakExteriorTets();
+    int SplitWeakInteriorEdges();
     int RefineNonManifoldEdges();
     int RefineNonManifoldNodes();
 

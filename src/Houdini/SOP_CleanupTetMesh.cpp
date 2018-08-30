@@ -78,9 +78,8 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    tet_mesh->RefineNonManifold(max_iter);
-
-    tet_mesh->DeleteUnusedTopology();
+    if (!tet_mesh->Cleanup(max_iter))
+        addWarning(SOP_MESSAGE, "Cleanup incomplete. Increase max iterations.");
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);

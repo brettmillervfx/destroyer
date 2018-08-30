@@ -62,6 +62,9 @@ public:
     // Get the 2 faces sharing an edge.
     std::array<TetFaceRef,2> GetFacesIncidentTo(EdgeIndex index) const;
 
+    // Return the number of boundary faces on this tet.
+    int BoundaryFaceCount() const;
+
     // If one of the edges is "interior" (ie. both nodes are boundary although the edge is not),
     // return that edge. Otherwise return nullptr.
     //TetEdgeRef GetInteriorEdge() const;

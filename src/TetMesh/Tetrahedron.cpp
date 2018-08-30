@@ -261,6 +261,18 @@ std::array<TetFaceRef,2> Tetrahedron::GetFacesIncidentTo(EdgeIndex index) const 
 
 }
 
+int Tetrahedron::BoundaryFaceCount() const {
+
+    int count = 0;
+    for (auto& face: faces_) {
+        if (face->IsBoundary())
+            count++;
+    }
+
+    return count;
+
+}
+
 void Tetrahedron::ClassifySplitEdgeConfiguration() {
 
     // Apply bitmask flags to cache which of the tet's 6 edges are split.
