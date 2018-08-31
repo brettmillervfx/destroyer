@@ -94,35 +94,29 @@ bool TetNode::IsBoundary() const {
 }
 
 bool TetNode::IsNonManifold() const {
-    //std::cout << "is nonmanifold in " << std::endl;
 
     // A node can only be non-manifold if it lies on the boundary.
     if (!IsBoundary())
         return false;
-    //std::cout << "is nonmanifold edge " << std::endl;
 
     // If a node is connected to a non-manifold edge, it is considered non-manifold.
     for (auto& edge: incident_edges_) {
         if (edge->IsNonManifold())
             return true;
     }
-    //std::cout << "is nonmanifold ring " << std::endl;
 
     // If a node has more than one edge ring, it is considered non-manifold.
     // First, filter the boundary faces and collect the edge rings.
     auto ring_edges = GetAllRingEdges();
     auto ring_edge_count = ring_edges.size();
-    //std::cout << "is nonmanifold ringA " << std::endl;
 
     auto first_edge_ring = GetFirstEdgeRing();
     auto first_ring_count = first_edge_ring.size();
-    //std::cout << "is nonmanifold ringB" << std::endl;
 
     // If we've traversed an entire edge loop and there are still more edges, we have multiple edge loops.
     if (first_ring_count < ring_edge_count)
         return true;
 
-    //std::cout << "is nonmanifold clear" << std::endl;
     // All clear.
     return false;
 
@@ -130,7 +124,6 @@ bool TetNode::IsNonManifold() const {
 
 std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
 
-    //std::cout << "here goes" << std::endl;
     auto ring_edges = GetAllRingEdges();
     auto ring_edge_count = ring_edges.size();
 
@@ -145,8 +138,6 @@ std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
         // Find the edge that isn't this one that has the current node.
         int new_edge = 0;
         while (new_edge<ring_edge_count) {
-            //std::cout << "is nonmanifold ring 3 " << new_edge << "/" << ring_edge_count << std::endl;
-            //std::cout << "Neat " << ring_edges[new_edge]->HasMidpoint() << std::endl;
             if ((current_edge!=new_edge)&(ring_edges[new_edge]->HasNode(current_node))) {
                 current_edge = new_edge;
                 current_node = ring_edges[current_edge]->GetOtherNode(current_node);
@@ -158,7 +149,6 @@ std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
 
         // Unlikely scenario...
         if (new_edge == ring_edge_count) {
-            std::cout << "Never found the head" << std::endl;
             break;
         }
 
@@ -171,6 +161,12 @@ std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
 std::vector<TetrahedronRef> TetNode::GetIncidentTets() const {
 
     return incident_tets_;
+
+}
+
+std::vector<TetFaceRef> TetNode::GetIncidentFaces() const {
+
+    return incident_faces_;
 
 }
 

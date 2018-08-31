@@ -2,18 +2,18 @@
 // Created by Brett Miller on 8/15/18.
 //
 
-#include "SOP_CompressTetMesh.h"
+#include "Houdini/SOP_CompressTetMesh.h"
 
 #include <chrono>
 #include <OP/OP_AutoLockInputs.h>
 #include <UT/UT_String.h>
 
-#include "DetailGenerator.h"
-#include "TetMeshToHoudiniDetail.h"
-#include "VDBSampler.h"
-#include "CompressionTetMesh.h"
-#include "TetNode.h"
-#include "Tetrahedron.h"
+#include "TetMesh/DetailGenerator.h"
+#include "TetMesh/TetMeshToHoudiniDetail.h"
+#include "TetMesh/VDBSampler.h"
+#include "TetMesh/CompressionTetMesh.h"
+#include "TetMesh/TetNode.h"
+#include "TetMesh/Tetrahedron.h"
 
 
 namespace destroyer {
@@ -72,24 +72,37 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    tet_mesh->SortNodesByDepth();
+    //tet_mesh->SortNodesByDepth();
+
+    // Test dihedral angles
+    /*
+    tet_mesh->ResetTetIterator();
+    auto tet = tet_mesh->NextTet();
+    while (tet != nullptr) {
+        auto angles = tet->GetMinMaxDihedralAngles();
+        std::cout << " min (" << angles[0]*57.295779513 << ")  max (" << angles[1]*57.295779513 << ")" << std::endl;
+
+        tet = tet_mesh->NextTet();
+    }
+    */
 
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
     conditioner.convert();
 
-    /*
+
     // Test depth sorting mechanism.
-    auto depth_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "d", 1));
+
+    auto depth_handle = GA_RWHandleF(gdp->addFloatTuple(GA_ATTRIB_POINT, "d", 1));
     tet_mesh->ResetNodeIterator();
     auto node = tet_mesh->NextNode();
     while(node != nullptr) {
-        //std::cout << "depth " << node->Depth() << std::endl;
-        depth_handle.set(node->Id(), node->Depth());
+        depth_handle.set(node->Id(), tet_mesh->QualityMetric(node));
         node = tet_mesh->NextNode();
     }
-    */
+
+
 
     // Tear down TetMesh.
     tet_mesh->TearDown();

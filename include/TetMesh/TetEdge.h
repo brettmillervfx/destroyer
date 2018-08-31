@@ -55,6 +55,7 @@ public:
     void DisconnectTetrahedron(TetrahedronRef tet);
 
     Real Length() const;
+    Vec3 AsVector() const;
 
     bool IsNonManifold() const;
 

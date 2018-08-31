@@ -31,22 +31,22 @@ namespace destroyer {
         optimized according to the user supplied weights.
 */
 
-    class SOP_CompressTetMesh : public SOP_Node
-    {
-    public:
-        SOP_CompressTetMesh(OP_Network *net, const char *name, OP_Operator *op);
-        ~SOP_CompressTetMesh() override = default;
+class SOP_CompressTetMesh : public SOP_Node
+{
+public:
+    SOP_CompressTetMesh(OP_Network *net, const char *name, OP_Operator *op);
+    ~SOP_CompressTetMesh() override = default;
 
-        static PRM_Template myTemplateList[];
-        static OP_Node *myConstructor(OP_Network*, const char *, OP_Operator *);
+    static PRM_Template myTemplateList[];
+    static OP_Node *myConstructor(OP_Network*, const char *, OP_Operator *);
 
-    protected:
+protected:
 
-        const char *inputLabel(unsigned idx) const override;
+    const char *inputLabel(unsigned idx) const override;
 
-        OP_ERROR cookMySop(OP_Context &context) override;
+    OP_ERROR cookMySop(OP_Context &context) override;
 
 
-    };
+};
 
 }; // namespace destroyer

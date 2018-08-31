@@ -10,22 +10,23 @@
 
 namespace destroyer {
 
-    class CompressionTetMesh : public TetMesh
-    {
-    public:
+class CompressionTetMesh : public TetMesh
+{
+public:
 
-        using TetMesh::TetMesh;
-        ~CompressionTetMesh() = default;
+    using TetMesh::TetMesh;
+    ~CompressionTetMesh() = default;
 
-        // Sort the nodelist by depth from the surface.
-        void SortNodesByDepth();
+    // Sort the nodelist by depth from the surface.
+    void SortNodesByDepth();
 
-    private:
-        Real InteriorQualityMetric(TetNodeRef node) const;
-        Real SurfaceQualityMetric(TetNodeRef node) const;
+    Real QualityMetric(TetNodeRef node) const;
+
+private:
+    Real InteriorQualityMetric(TetNodeRef node) const;
 
 
-    };
+};
 
 
 }; // namespace destroyer

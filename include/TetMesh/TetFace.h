@@ -42,6 +42,12 @@ public:
     // Returns true if the specified edge is one of the edges comprising the face.
     bool HasEdge(TetEdgeRef edge) const;
 
+    Vec3 Normal() const;
+
+    Real MinNodeAltitude() const;
+    Real MaxEdgeLength() const;
+    Real MaxAngle() const;
+
 
 private:
     std::vector<TetrahedronRef> incident_tets_;

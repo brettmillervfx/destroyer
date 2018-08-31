@@ -380,6 +380,74 @@ bool Tetrahedron::IsPotentialRed() const {
     return true;
 }
 
+Real Tetrahedron::GetMinAltitude() const {
+
+    // We define the altitude of a node as the minimum distance to the plane defined by the opposite face.
+    auto min_altitude = std::numeric_limits<Real>::max();
+    for (Index i = 0; i<4; i++){
+
+        // Find the normal of the opposite triangle and a vector from the plane to the apex.
+        // Project the vector onto the normal and find it's length. This is the altitude.
+        auto edge0 = nodes_[(i+2)%4]->Position() - nodes_[(i+1)%4]->Position();
+        auto edge1 = nodes_[(i+3)%4]->Position() - nodes_[(i+1)%4]->Position();
+        //auto normal = edge0.cross(edge1);
+        auto normal = cross(edge0,edge1);
+        normal.normalize();
+        auto to_apex = nodes_[i]->Position() - nodes_[(i+1)%4]->Position();
+        auto altitude = abs(to_apex.dot(normal));
+
+        if (altitude<min_altitude)
+            min_altitude = altitude;
+    }
+
+    return min_altitude;
+
+}
+
+MinMaxReal Tetrahedron::GetMinMaxEdgeLengths() const {
+
+    MinMaxReal edge_lengths{ {std::numeric_limits<Real>::max(), 0.0} };
+
+    for (auto& edge: edges_) {
+        auto length = edge->Length();
+        if (length > edge_lengths[1]) {
+            edge_lengths[1] = length;
+        }
+        if (length < edge_lengths[0]) {
+            edge_lengths[0] = length;
+        }
+    }
+
+    return edge_lengths;
+}
+
+MinMaxReal Tetrahedron::GetMinMaxDihedralAngles() const {
+
+    // Compare the dihedral angles of each edge and return the most acute and the most obtuse.
+    MinMaxReal dihedral_angles{ {std::numeric_limits<Real>::max(), 0.0} };
+
+    for (auto edge_index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3} ) {
+
+        auto face0 = faces_[INCIDENT_FACE_TABLE[edge_index][0]];
+        auto normal0 = face0->Normal();
+
+        auto face1 = faces_[INCIDENT_FACE_TABLE[edge_index][1]];
+        auto normal1 = face1->Normal();
+
+        Real angle = std::acos(normal0.dot(normal1));
+
+        if (angle > dihedral_angles[1]) {
+            dihedral_angles[1] = angle;
+        }
+        if (angle < dihedral_angles[0]) {
+            dihedral_angles[0] = angle;
+        }
+    }
+
+    return dihedral_angles;
+
+}
+
 void Tetrahedron::GetNewEdges() {
 
     // Retrieve existing required edges and create new any that do not pre-exist.
@@ -491,23 +559,6 @@ bool Tetrahedron::EncroachedByLevelSet(int recursion_depth,
 
     return false;
 
-}
-
-MinMaxReal Tetrahedron::GetMinMaxEdgeLengths() const {
-
-    MinMaxReal edge_lengths{ {std::numeric_limits<Real>::max(), 0.0} };
-
-    for (auto& edge: edges_) {
-        auto length = edge->Length();
-        if (length > edge_lengths[1]) {
-            edge_lengths[1] = length;
-        }
-        if (length < edge_lengths[0]) {
-            edge_lengths[0] = length;
-        }
-    }
-
-    return edge_lengths;
 }
 
 }; // namespace destroyer

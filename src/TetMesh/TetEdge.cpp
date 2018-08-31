@@ -165,7 +165,14 @@ void TetEdge::DisconnectTetrahedron(TetrahedronRef tet) {
 Real TetEdge::Length() const {
 
     Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
-    return edge_vec.norm();
+    return edge_vec.length();
+
+}
+
+Vec3 TetEdge::AsVector() const {
+
+    Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
+    return edge_vec;
 
 }
 

@@ -156,4 +156,74 @@ bool TetFace::HasEdge(TetEdgeRef edge) const {
 
 }
 
+Vec3 TetFace::Normal() const {
+
+    auto edge0 = edges_[0]->AsVector();
+    auto edge1 = edges_[1]->AsVector();
+
+    auto normal = cross(edge0,edge1);
+    normal.normalize();
+
+    return normal;
+
+}
+
+Real TetFace::MinNodeAltitude() const {
+
+    Real min_altitude = std::numeric_limits<Real>::max();
+
+    for (auto& node: nodes_) {
+        auto pos = node->Position();
+        auto opposite_edge = GetOppositeEdge(node);
+        auto to_node = pos - opposite_edge->GetFirstNode()->Position();
+        auto ground = opposite_edge->AsVector();
+        ground.normalize();
+        auto projected = to_node - (to_node.dot(ground) * ground);
+        auto altitude = projected.length();
+        if (altitude < min_altitude)
+            min_altitude = altitude;
+    }
+
+    return min_altitude;
+
+}
+
+Real TetFace::MaxEdgeLength() const {
+
+    Real edge_length = 0.0;
+
+    for (auto& edge: edges_) {
+        auto length = edge->Length();
+        if (length > edge_length) {
+            edge_length = length;
+        }
+    }
+
+    return edge_length;
+
+}
+
+Real TetFace::MaxAngle() const {
+
+    Real node_angle = 0.0;
+
+    std::array<Vec3,3> points {{nodes_[0]->Position(),  nodes_[1]->Position(), nodes_[2]->Position()}};
+
+    for (auto node_index: {0,1,2}) {
+        Vec3 left = points[(node_index-1)%3] - points[node_index];
+        left.normalize();
+
+        Vec3 right = points[(node_index+1)%3] - points[node_index];
+        right.normalize();
+
+        auto angle = acos(left.dot(right));
+        if (angle > node_angle) {
+            node_angle = angle;
+        }
+    }
+
+    return node_angle;
+
+}
+
 }; // namespace destroyer

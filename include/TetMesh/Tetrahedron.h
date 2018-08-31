@@ -8,6 +8,7 @@
 
 #include <array>
 #include <vector>
+#include <bitset>
 
 namespace destroyer {
 
@@ -92,6 +93,11 @@ public:
     // Returns true if the tet is not already a Red tet and is unsuitable for Green refinement.
     bool IsPotentialRed() const;
 
+    Real GetMinAltitude() const;
+    MinMaxReal GetMinMaxEdgeLengths() const;
+    MinMaxReal GetMinMaxDihedralAngles() const;
+
+
 private:
     void GetNewEdges();
     void GetNewFaces();
@@ -101,8 +107,6 @@ private:
     bool CrossesLevelSet() const;
     bool EncroachedByLevelSet(int recursion_depth, const VDBSamplerPtr sdf_sampler,
                               const Vec3 &vertex0, const Vec3 &vertex1, const Vec3 &vertex2) const;
-
-    MinMaxReal GetMinMaxEdgeLengths() const;
 
 private:
     Index id_;
