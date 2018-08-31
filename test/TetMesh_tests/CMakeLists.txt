@@ -9,7 +9,8 @@ add_executable( runTetMeshChecks
         #Tetrahedron_check.cpp
         runTetMeshTests.cpp
         TetMesh_test.cpp
-        RefinementTetMesh_check.cpp
+        TetFace_check.cpp
+        #RefinementTetMesh_check.cpp
         )
 
 target_link_libraries( runTetMeshChecks gtest gtest_main )

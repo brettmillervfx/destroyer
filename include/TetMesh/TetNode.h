@@ -56,7 +56,7 @@ public:
     void ConnectEdge(TetEdgeRef edge);
     void DisconnectEdge(TetEdgeRef edge);
 
-
+    Vec3 Normal() const;
 
 private:
     std::vector<TetEdgeRef> GetAllRingEdges() const;

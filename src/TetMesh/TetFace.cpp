@@ -7,6 +7,7 @@
 #include "TetMesh/TetFace.h"
 #include "TetMesh/TetEdge.h"
 #include "TetMesh/TetNode.h"
+#include "TetMesh/Tetrahedron.h"
 
 namespace destroyer {
 
@@ -158,11 +159,21 @@ bool TetFace::HasEdge(TetEdgeRef edge) const {
 
 Vec3 TetFace::Normal() const {
 
-    auto edge0 = edges_[0]->AsVector();
-    auto edge1 = edges_[1]->AsVector();
+    Vec3 normal(0.0,0.0,0.0);
 
-    auto normal = cross(edge0,edge1);
-    normal.normalize();
+    if (IsBoundary()) {
+        auto edge0 = edges_[0]->AsVector();
+        auto edge1 = edges_[1]->AsVector();
+
+        normal = cross(edge0, edge1);
+
+        // Ensure that the vector is facing out from the tetrahedron.
+        auto from_centroid = nodes_[0]->Position() - incident_tets_[0]->Centroid();
+        if (normal.dot(from_centroid) < 0.0)
+            normal *= -1.0;
+
+        normal.normalize();
+    }
 
     return normal;
 

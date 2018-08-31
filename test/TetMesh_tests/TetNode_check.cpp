@@ -4,7 +4,8 @@
 
 #include <memory>
 
-#include <Eigen/Dense>
+#include <UT/UT_Vector3.h>
+#include "TetMesh/Types.h"
 #include "TetMesh/TetNode.h"
 #include "TetMesh/TetMesh.h"
 #include "TetMesh/Tetrahedron.h"
@@ -15,7 +16,7 @@
 
 TEST(TetNodeTest, test_component_constructor) {
     destroyer::TetNode node( 1.0, 2.0, 3.0);
-    Eigen::Vector3d vec = node.Position();
+    auto vec = node.Position();
     EXPECT_EQ( vec[0], 1.0 );
     EXPECT_EQ( vec[1], 2.0 );
     EXPECT_EQ( vec[2], 3.0 );
@@ -28,9 +29,9 @@ TEST(TetNodeTest, test_component_constructor_w_id) {
 }
 
 TEST(TetNodeTest, test_vector3d_constructor) {
-    Eigen::Vector3d inVec(4.0,3.0,2.0);
+    destroyer::Vec3 inVec(4.0,3.0,2.0);
     destroyer::TetNode node( inVec);
-    Eigen::Vector3d vec = node.Position();
+    auto vec = node.Position();
     EXPECT_EQ( vec[0], 4.0 );
     EXPECT_EQ( vec[1], 3.0 );
     EXPECT_EQ( vec[2], 2.0 );
@@ -38,30 +39,30 @@ TEST(TetNodeTest, test_vector3d_constructor) {
 }
 
 TEST(TetNodeTest, test_vector3d_constructor_w_id) {
-    Eigen::Vector3d inVec(4.0,3.0,2.0);
+    destroyer::Vec3 inVec(4.0,3.0,2.0);
     destroyer::TetNode node( inVec, 555);
     EXPECT_EQ( node.Id(), 555 );
 }
 
 TEST(TetNodeTest, test_set_position) {
     destroyer::TetNode node( 1.0, 2.0, 3.0);
-    Eigen::Vector3d inVec(4.0,3.0,2.0);
+    destroyer::Vec3 inVec(4.0,3.0,2.0);
     node.SetPosition(inVec);
-    Eigen::Vector3d vec = node.Position();
+    auto vec = node.Position();
     EXPECT_EQ( vec[0], 4.0 );
     EXPECT_EQ( vec[1], 3.0 );
     EXPECT_EQ( vec[2], 2.0 );
 }
 
 TEST(TetNodeTest, test_set_id) {
-    Eigen::Vector3d inVec(4.0,3.0,2.0);
+    destroyer::Vec3 inVec(4.0,3.0,2.0);
     destroyer::TetNode node( inVec, 555);
     node.SetId(3);
     EXPECT_EQ( node.Id(), 3 );
 }
 
 TEST(TetNodeTest, test_set_depth) {
-    Eigen::Vector3d inVec(4.0,3.0,2.0);
+    destroyer::Vec3 inVec(4.0,3.0,2.0);
     destroyer::TetNode node(inVec);
     node.SetDepth(3);
     EXPECT_EQ( node.Depth(), 3 );

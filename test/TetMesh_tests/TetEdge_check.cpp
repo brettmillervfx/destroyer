@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include <Eigen/Dense>
+#include <UT/UT_Vector3.h>
 #include "TetMesh/TetNode.h"
 #include "TetMesh/Tetrahedron.h"
 #include "TetMesh/TetEdge.h"

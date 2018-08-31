@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include <Eigen/Dense>
+#include <UT/UT_Vector3.h>
 #include "TetMesh/Types.h"
 #include "TetMesh/RefinementTetMesh.h"
 #include "TetMesh/Tetrahedron.h"
@@ -316,7 +316,7 @@ TEST(RefinementTetMeshTest, test_nonmanifold_edge_resolution) {
     mesh->AddTetrahedron(n0,n1,n2,n3, 666);
     mesh->AddTetrahedron(n0,n1,n4,n5, 7);
 
-    mesh->RefineNonManifold();
+    mesh->Cleanup();
 
     mesh->ResetTetIterator();
     auto t = mesh->NextTet();
@@ -364,7 +364,7 @@ TEST(RefinementTetMeshTest, test_nonmanifold_node_resolution) {
     mesh->AddTetrahedron(n0,n1,n2,n3, 666);
     mesh->AddTetrahedron(n0,n4,n5,n6, 7);
 
-    mesh->RefineNonManifold();
+    mesh->Cleanup();
 
     mesh->ResetTetIterator();
     auto t = mesh->NextTet();
@@ -414,7 +414,7 @@ TEST(RefinementTetMeshTest, test_nonmanifold_node_resolution_multiples) {
     mesh->AddTetrahedron(n0,n1,n2,n7, 667);
     mesh->AddTetrahedron(n0,n4,n5,n6, 7);
 
-    mesh->RefineNonManifold();
+    mesh->Cleanup();
 
     int nodeCount = 0;
     mesh->ResetNodeIterator();
@@ -446,7 +446,7 @@ TEST(RefinementTetMeshTest, test_nonmanifold_edge_resolution_double_butterfly) {
     mesh->AddTetrahedron(axis0, axis1, p0, p1, 7);
     mesh->AddTetrahedron(axis0, axis1, p1, p2, 7);
 
-    mesh->RefineNonManifold();
+    mesh->Cleanup();
 
     mesh->ResetTetIterator();
     auto t = mesh->NextTet();

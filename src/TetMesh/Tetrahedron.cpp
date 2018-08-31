@@ -380,6 +380,17 @@ bool Tetrahedron::IsPotentialRed() const {
     return true;
 }
 
+Vec3 Tetrahedron::Centroid() const {
+
+    Vec3 centroid(0.0,0.0,0.0);
+
+    for (auto& node: nodes_) {
+        centroid += node->Position();
+    }
+
+    return centroid / 4.0;
+}
+
 Real Tetrahedron::GetMinAltitude() const {
 
     // We define the altitude of a node as the minimum distance to the plane defined by the opposite face.

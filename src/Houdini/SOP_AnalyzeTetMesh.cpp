@@ -66,6 +66,7 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     // Set up analysis point attributes
     auto boundary_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "boundary", 1));
     auto nonmanifold_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "nonmanifold", 1));
+    auto normal_handle = GA_RWHandleV3(gdp->addFloatTuple(GA_ATTRIB_POINT, "normal", 3));
 
     // Calculate attributes and assign values.
     /*
@@ -85,12 +86,15 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     }
     */
 
-    //tet_mesh->FlagAllBoundaryNodes();
     tet_mesh->ResetNodeIterator();
     auto node = tet_mesh->NextNode();
     while(node != nullptr) {
         boundary_handle.set(node->Id(), (node->IsBoundary() ? 1 : 0) );
         nonmanifold_handle.set(node->Id(), (node->IsNonManifold() ? 1 : 0 ) );
+
+        auto normal = node->Normal();
+        normal_handle.set(node->Id(), normal);
+
         node = tet_mesh->NextNode();
     }
 

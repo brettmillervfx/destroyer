@@ -42,6 +42,7 @@ public:
     // Returns true if the specified edge is one of the edges comprising the face.
     bool HasEdge(TetEdgeRef edge) const;
 
+    // Only valid if the face in boundary.
     Vec3 Normal() const;
 
     Real MinNodeAltitude() const;

@@ -63,6 +63,8 @@ public:
     // Get the 2 faces sharing an edge.
     std::array<TetFaceRef,2> GetFacesIncidentTo(EdgeIndex index) const;
 
+    inline TetFaceRef GetFaceRef(int index) const { return faces_[index]; };
+
     // Return the number of boundary faces on this tet.
     int BoundaryFaceCount() const;
 
@@ -92,6 +94,8 @@ public:
     // is subdivided 1:8. We prefer "Green" refinement when possible.
     // Returns true if the tet is not already a Red tet and is unsuitable for Green refinement.
     bool IsPotentialRed() const;
+
+    Vec3 Centroid() const;
 
     Real GetMinAltitude() const;
     MinMaxReal GetMinMaxEdgeLengths() const;

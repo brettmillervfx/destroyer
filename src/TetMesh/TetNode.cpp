@@ -238,4 +238,17 @@ std::vector<TetEdgeRef> TetNode::GetAllRingEdges() const {
 
 }
 
+Vec3 TetNode::Normal() const {
+
+    Vec3 normal(0.0,0.0,0.0);
+
+    for (auto& face: incident_faces_) {
+        normal += face->Normal();
+    }
+
+    normal.normalize();
+    return normal;
+
+}
+
 }; // namespace destroyer
