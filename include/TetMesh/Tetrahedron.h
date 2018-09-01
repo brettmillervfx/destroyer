@@ -42,7 +42,8 @@ public:
     bool ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) const;
 
     // Get the node reference assigned to the Tetrahedron's vertex at index i (range is 0 to 3).
-    inline TetNodeRef GetNodeRef(Index node_index) const { return nodes_[node_index]; };
+    inline TetNodeRef GetNodeRef(int node_index) const { return nodes_[node_index]; };
+    int GetNodeIndex(TetNodeRef node) const;
 
     // Get the edge between the two specified node indices.
     TetEdgeRef GetEdgeRef(int node0, int node1) const;
@@ -97,6 +98,7 @@ public:
 
     Vec3 Centroid() const;
 
+    Real Altitude(int node_index) const;
     Real GetMinAltitude() const;
     MinMaxReal GetMinMaxEdgeLengths() const;
     MinMaxReal GetMinMaxDihedralAngles() const;

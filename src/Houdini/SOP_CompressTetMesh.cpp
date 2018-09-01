@@ -18,10 +18,16 @@
 
 namespace destroyer {
 
+static PRM_Name soft_sweeps_prm_name("softSweeps", "Soft Sweeps");
+static PRM_Default soft_sweeps_prm_default(5);
 
+static PRM_Name hard_sweeps_prm_name("hardSweeps", "Hard Sweeps");
+static PRM_Default hard_sweeps_prm_default(5);
 
 PRM_Template
         SOP_CompressTetMesh::myTemplateList[] = {
+        PRM_Template(PRM_INT_J, 1, &soft_sweeps_prm_name, &soft_sweeps_prm_default),
+        PRM_Template(PRM_INT_J, 1, &hard_sweeps_prm_name, &hard_sweeps_prm_default),
         PRM_Template(),
 };
 
@@ -62,7 +68,8 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
     // Collect parameters.
     auto now = context.getTime();
 
-    // No parameters currently
+    auto soft_sweeps = evalInt("softSweeps", 0, now);
+    auto hard_sweeps = evalInt("hardSweeps", 0, now);
 
     // Instantiate an empty TetMesh.
     auto tet_mesh = std::make_shared<CompressionTetMesh>(sdf_sampler);
@@ -72,37 +79,11 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    //tet_mesh->SortNodesByDepth();
-
-    // Test dihedral angles
-    /*
-    tet_mesh->ResetTetIterator();
-    auto tet = tet_mesh->NextTet();
-    while (tet != nullptr) {
-        auto angles = tet->GetMinMaxDihedralAngles();
-        std::cout << " min (" << angles[0]*57.295779513 << ")  max (" << angles[1]*57.295779513 << ")" << std::endl;
-
-        tet = tet_mesh->NextTet();
-    }
-    */
-
+    tet_mesh->Compress(soft_sweeps, hard_sweeps);
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
     conditioner.convert();
-
-
-    // Test depth sorting mechanism.
-
-    auto depth_handle = GA_RWHandleF(gdp->addFloatTuple(GA_ATTRIB_POINT, "d", 1));
-    tet_mesh->ResetNodeIterator();
-    auto node = tet_mesh->NextNode();
-    while(node != nullptr) {
-        depth_handle.set(node->Id(), tet_mesh->QualityMetric(node));
-        node = tet_mesh->NextNode();
-    }
-
-
 
     // Tear down TetMesh.
     tet_mesh->TearDown();

@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "TetMesh/Tetrahedron.h"
 #include "TetMesh/TetNode.h"
 #include "TetMesh/TetFace.h"
 #include "TetMesh/TetEdge.h"
@@ -249,6 +250,19 @@ Vec3 TetNode::Normal() const {
     normal.normalize();
     return normal;
 
+}
+
+Real TetNode::GetMinAltitude() const {
+
+    auto min_altitude = std::numeric_limits<Real>::max();
+    for (auto& tet: incident_tets_) {
+        auto index = tet->GetNodeIndex(TetNodeRef(this));
+        auto altitude = tet->Altitude(index);
+        if (altitude<min_altitude)
+            min_altitude = altitude;
+    }
+
+    return min_altitude;
 }
 
 }; // namespace destroyer

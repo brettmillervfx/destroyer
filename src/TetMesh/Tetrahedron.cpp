@@ -147,6 +147,18 @@ bool Tetrahedron::ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) 
 
 }
 
+int Tetrahedron::GetNodeIndex(TetNodeRef node) const {
+
+    int ret_index=0;
+    for (;ret_index<4;ret_index++) {
+        if (nodes_[ret_index] == node)
+            break;
+    }
+
+    return (ret_index<4) ? ret_index : -1;
+
+}
+
 TetEdgeRef Tetrahedron::GetEdgeRef(int node0, int node1) const {
 
     auto edge_index = NODE_TABLE[node0][node1];
@@ -391,21 +403,28 @@ Vec3 Tetrahedron::Centroid() const {
     return centroid / 4.0;
 }
 
+Real Tetrahedron::Altitude(int node_index) const {
+
+    // Find the normal of the opposite triangle and a vector from the plane to the apex.
+    // Project the vector onto the normal and find it's length. This is the altitude.
+    auto edge0 = nodes_[(node_index+2)%4]->Position() - nodes_[(node_index+1)%4]->Position();
+    auto edge1 = nodes_[(node_index+3)%4]->Position() - nodes_[(node_index+1)%4]->Position();
+    auto normal = cross(edge0,edge1);
+    normal.normalize();
+    auto to_apex = nodes_[node_index]->Position() - nodes_[(node_index+1)%4]->Position();
+    auto altitude = abs(to_apex.dot(normal));
+
+    return altitude;
+
+}
+
 Real Tetrahedron::GetMinAltitude() const {
 
     // We define the altitude of a node as the minimum distance to the plane defined by the opposite face.
     auto min_altitude = std::numeric_limits<Real>::max();
     for (Index i = 0; i<4; i++){
 
-        // Find the normal of the opposite triangle and a vector from the plane to the apex.
-        // Project the vector onto the normal and find it's length. This is the altitude.
-        auto edge0 = nodes_[(i+2)%4]->Position() - nodes_[(i+1)%4]->Position();
-        auto edge1 = nodes_[(i+3)%4]->Position() - nodes_[(i+1)%4]->Position();
-        //auto normal = edge0.cross(edge1);
-        auto normal = cross(edge0,edge1);
-        normal.normalize();
-        auto to_apex = nodes_[i]->Position() - nodes_[(i+1)%4]->Position();
-        auto altitude = abs(to_apex.dot(normal));
+        auto altitude = Altitude(i);
 
         if (altitude<min_altitude)
             min_altitude = altitude;

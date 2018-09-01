@@ -7,6 +7,7 @@
 #include "Types.h"
 
 #include <vector>
+#include <random>
 
 namespace destroyer {
 
@@ -57,6 +58,8 @@ public:
     void DisconnectEdge(TetEdgeRef edge);
 
     Vec3 Normal() const;
+
+    Real GetMinAltitude() const;
 
 private:
     std::vector<TetEdgeRef> GetAllRingEdges() const;
