@@ -134,7 +134,6 @@ void RefinementTetMesh::SubdivideTetrahedron(TetrahedronRef tet) {
         AddTetrahedron(original_nodes[i], midpoint[index0], midpoint[index1], midpoint[index2], tet->Id());
     }
 
-    // TODO first calculate the interior diagonals and use the shortest to determine the interior topology.
     // Produce the 4 interior tetrahedra.
     AddTetrahedron(midpoint[03], midpoint[23], midpoint[01], midpoint[02], tet->Id());
     AddTetrahedron(midpoint[03], midpoint[23], midpoint[13], midpoint[01], tet->Id());
@@ -249,7 +248,6 @@ void RefinementTetMesh::IrregularSubdivideTetrahedronOne(TetrahedronRef tet) {
 
 void RefinementTetMesh::IrregularSubdivideTetrahedronTwo(TetrahedronRef tet) {
 
-    // TODO there is no doubt a way to get better results if we expand to 6 options, ie. we consider which direction the split edge goes.
     // Subdivide for tets with two broken edges, opposite one another. This method assumes that
     // the input is prefiltered and that the edges are indeed opposite.
     Index node0, node1, node2, node3;
