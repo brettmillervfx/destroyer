@@ -76,6 +76,7 @@ Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetN
 
     tet_mesh_ = tet_mesh;
     id_ = id;
+    quality_ = 0.0;
 
     nodes_[0] = n0;
     n0->ConnectTetrahedron(this);
@@ -285,6 +286,18 @@ int Tetrahedron::BoundaryFaceCount() const {
 
 }
 
+int Tetrahedron::BoundaryNodeCount() const {
+
+    int count = 0;
+    for (auto& node: nodes_) {
+        if (node->IsBoundary())
+            count++;
+    }
+
+    return count;
+
+}
+
 void Tetrahedron::ClassifySplitEdgeConfiguration() {
 
     // Apply bitmask flags to cache which of the tet's 6 edges are split.
@@ -459,12 +472,12 @@ MinMaxReal Tetrahedron::GetMinMaxDihedralAngles() const {
     for (auto edge_index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3} ) {
 
         auto face0 = faces_[INCIDENT_FACE_TABLE[edge_index][0]];
-        auto normal0 = face0->Normal();
+        auto normal0 = -face0->Normal(TetrahedronRef(this));
 
         auto face1 = faces_[INCIDENT_FACE_TABLE[edge_index][1]];
-        auto normal1 = face1->Normal();
+        auto normal1 = -face1->Normal(TetrahedronRef(this));
 
-        Real angle = std::acos(normal0.dot(normal1));
+        Real angle = 3.14159265359 - std::acos(normal0.dot(normal1));
 
         if (angle > dihedral_angles[1]) {
             dihedral_angles[1] = angle;
@@ -475,6 +488,18 @@ MinMaxReal Tetrahedron::GetMinMaxDihedralAngles() const {
     }
 
     return dihedral_angles;
+
+}
+
+Real Tetrahedron::CalculateAspectRatio() {
+
+    // Aspect ratio is defined as maximum edge length divided by minimum altitude.
+    auto edge_lengths = GetMinMaxEdgeLengths();
+    auto altitude = GetMinAltitude();
+
+    quality_ = edge_lengths[1] / altitude;
+
+    return quality_;
 
 }
 

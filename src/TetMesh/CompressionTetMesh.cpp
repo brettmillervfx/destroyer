@@ -13,20 +13,26 @@
 namespace destroyer {
 
 
-void CompressionTetMesh::Compress(int soft_sweeps, int hard_sweeps) {
+void CompressionTetMesh::Compress(int soft_sweeps, int hard_sweeps, Real quality_threshold) {
 
     SortNodesByDepth();
 
     GenerateSearchTemplates();
 
     for (int i=0; i<soft_sweeps; ++i) {
-        CompressBoundaryNodes(SOFT_BOUNDARY_COMPRESS);
-        OptimizeNodes(INITIAL_STEP_SIZE, MAX_STRIKES);
+        std::cout << "soft " << i << " of " << soft_sweeps << std::endl;
+        FindLowestQuality();
+        std::cout << "lowest quality " << lowest_quality_ << std::endl;
+        CompressBoundaryNodes(SOFT_BOUNDARY_COMPRESS, quality_threshold);
+        OptimizeNodes(SOFT_STEP_SIZE, MAX_STRIKES, quality_threshold);
     }
 
     for (int i=0; i<hard_sweeps; ++i) {
-        CompressBoundaryNodes(HARD_BOUNDARY_COMPRESS);
-        OptimizeNodes(INITIAL_STEP_SIZE, MAX_STRIKES);
+        std::cout << "hard " << i << " of " << hard_sweeps << std::endl;
+        FindLowestQuality();
+        std::cout << "lowest quality " << lowest_quality_ << std::endl;
+        CompressBoundaryNodes(HARD_BOUNDARY_COMPRESS, quality_threshold);
+        OptimizeNodes(HARD_STEP_SIZE, MAX_STRIKES, quality_threshold);
     }
 
 
@@ -35,7 +41,7 @@ void CompressionTetMesh::Compress(int soft_sweeps, int hard_sweeps) {
 
 void CompressionTetMesh::SortNodesByDepth() {
 
-    // Processing queue fro handling breadth first travesal of nodes.
+    // Processing queue from handling breadth first travesal of nodes.
     std::queue<TetNodeRef> node_depth_processer;
 
     // Set maximum depth as initial conditions for all nodes.
@@ -81,7 +87,7 @@ void CompressionTetMesh::SortNodesByDepth() {
 void CompressionTetMesh::GenerateSearchTemplates() {
 
     // Boundary search patter: evenly distributed points on unit circle
-    Real d_theta = 6.28318530718 / Real(BOUNDARY_SEARCH_PATTERN_SIZE);
+    Real d_theta = (2.0 * M_PI) / Real(BOUNDARY_SEARCH_PATTERN_SIZE);
     for (int i=1; i<BOUNDARY_SEARCH_PATTERN_SIZE; i++) {
         auto x = sin(i*d_theta);
         auto z = cos(i*d_theta);
@@ -94,7 +100,7 @@ void CompressionTetMesh::GenerateSearchTemplates() {
     for (int i=0; i<INTERIOR_SEARCH_PATTERN_SIZE; i++) {
         Real index = Real(i) + 0.5;
         auto phi = acos(1.0 - 2.0*index/Real(INTERIOR_SEARCH_PATTERN_SIZE));
-        auto theta = 3.14159265359 * (1.0 + pow(5.0,0.5)) * index;
+        auto theta = M_PI * (1.0 + pow(5.0,0.5)) * index;
         auto x = cos(theta) * sin(phi);
         auto y = sin(theta) * sin(phi);
         auto z = cos(phi);
@@ -104,53 +110,72 @@ void CompressionTetMesh::GenerateSearchTemplates() {
 
 }
 
-void CompressionTetMesh::CompressBoundaryNodes(Real compression_amount) {
+void CompressionTetMesh::CompressBoundaryNodes(Real compression_amount, Real quality_threshold) {
 
     for (auto& node: nodes_) {
 
         if (!node->IsBoundary())
             break;
 
+        //if (node->GetLocalQuality() < lowest_quality_*quality_threshold)
+        //    break;
+
         auto pos = node->Position();
         auto sdf = sampler_->Sample(pos[0], pos[1], pos[2]);
         auto normal = node->Normal();
-        auto new_pos = pos - sdf*normal*compression_amount;
+        //auto min_altitude = node->GetMinAltitude();
+        //TODO just a thought. maybe I need min altitude here as well?
+        //auto new_pos = pos - sdf * normal * std::min(compression_amount, min_altitude/2.0);
+        auto new_pos = pos - sdf * normal * compression_amount;
         node->SetPosition(new_pos);
 
     }
 
 }
 
-void CompressionTetMesh::OptimizeNodes(Real initial_step, int max_strikes) {
+void CompressionTetMesh::OptimizeNodes(Real initial_step, int max_strikes, Real quality_threshold) {
 
-    Sweep(initial_step, max_strikes, false);
-    Sweep(initial_step, max_strikes, true);
+    Sweep(initial_step, max_strikes, quality_threshold, false);
+    Sweep(initial_step, max_strikes, quality_threshold, true);
 
 }
 
-void CompressionTetMesh::Sweep(Real initial_step, int max_strikes, bool reverse) {
+void CompressionTetMesh::Sweep(Real initial_step, int max_strikes, Real quality_threshold, bool reverse) {
 
     // Set up a random number gnerator.
     std::random_device rd;
     std::mt19937 gen(rd());
 
+    auto node_cnt = nodes_.size();
+    int updated = 0;
+
     if (reverse) {
         for (auto rit = nodes_.rbegin(); rit != nodes_.rend(); ++rit) {
-            AdjustNode(rit->get(), gen, initial_step, max_strikes);
+            if (rit->get()->GetLocalQuality() > lowest_quality_*quality_threshold) {
+                updated++;
+                AdjustNode(rit->get(), gen, initial_step, max_strikes);
+            }
         }
     } else {
         for (auto& node: nodes_) {
-            AdjustNode(node.get(), gen, initial_step, max_strikes);
+            if (node->GetLocalQuality() > (lowest_quality_*quality_threshold)) {
+                updated++;
+                AdjustNode(node.get(), gen, initial_step, max_strikes);
+            }
         }
     }
+
+    std::cout << " updated " << Real(updated)/Real(node_cnt) << std::endl;
 
 }
 
 void CompressionTetMesh::AdjustNode(TetNodeRef node, std::mt19937 generator, Real initial_step, int max_strikes) {
 
+
+
     auto current_quality = QualityMetric(node);
     auto current_pos = node->Position();
-    auto best_pos = node->Position();
+    auto best_pos = current_pos;
     auto current_step = initial_step;
     auto min_altitude = node->GetMinAltitude();
 
@@ -163,6 +188,8 @@ void CompressionTetMesh::AdjustNode(TetNodeRef node, std::mt19937 generator, Rea
         // Move the point to each position in the search pattern and determine quality.
         for (auto& search_vector: search_pattern) {
             auto test_pos = current_pos + search_vector * current_step * min_altitude;
+            //auto test_pos = current_pos + search_vector * std::min(current_step, min_altitude);
+            //auto test_pos = current_pos + search_vector * current_step;
             node->SetPosition(test_pos);
             auto quality = QualityMetric(node);
 
@@ -183,6 +210,8 @@ void CompressionTetMesh::AdjustNode(TetNodeRef node, std::mt19937 generator, Rea
 
     }
 
+    node->SetQuality(current_quality);
+    node->SetNextMove(best_pos-current_pos);
     node->SetPosition(best_pos);
 
 }
@@ -237,7 +266,7 @@ Real CompressionTetMesh::InteriorQualityMetric(TetNodeRef node) const {
 
     // From the Bridson/Fedkiw 2003 paper.
     // We define the quality metric for interior nodes as the minimum value of
-    // a/L + 1/4 * cos( theta_m)
+    // a/L + sin( theta_m)
     // calculated on each incident tetrahedron.
     // Where
     //      a = minimum altitude
@@ -255,7 +284,10 @@ Real CompressionTetMesh::InteriorQualityMetric(TetNodeRef node) const {
         MinMaxReal dihedral_angles = tet->GetMinMaxDihedralAngles();
         auto theta_m = dihedral_angles[1];
 
-        auto quality = (a/L) + (cos(theta_m) / 4.0);
+        auto quality = (a/L) * sin(theta_m);
+        auto aspect = tet->CalculateAspectRatio();
+        quality += (5.0 - aspect);
+
         if (quality < min_quality)
             min_quality = quality;
     }
@@ -276,7 +308,7 @@ Real CompressionTetMesh::QualityMetric(TetNodeRef node) const {
     //      L = maximum triangle edge length
     //      psi_m = maximum triangle angle
 
-    auto surface_quality = 0.0;
+    auto surface_quality = 1.0;
 
     if (node->IsBoundary()) {
         surface_quality = std::numeric_limits<Real>::max();
@@ -293,9 +325,22 @@ Real CompressionTetMesh::QualityMetric(TetNodeRef node) const {
             }
 
         }
+
     }
 
     return InteriorQualityMetric(node) + surface_quality;
+
+}
+
+void CompressionTetMesh::FindLowestQuality() {
+
+    lowest_quality_ = 0.0;
+
+    for (auto& tet: tets_) {
+        auto quality = tet.first->CalculateAspectRatio();
+        if (quality>lowest_quality_)
+            lowest_quality_ = quality;
+    }
 
 }
 

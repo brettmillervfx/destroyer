@@ -61,6 +61,13 @@ public:
 
     Real GetMinAltitude() const;
 
+    Real GetLocalQuality() const;
+
+    inline void SetQuality(Real quality) { quality_ = quality; };
+    inline Real Quality() const { return quality_; };
+    inline void SetNextMove(Vec3 next_move) { next_move_ = next_move; };
+    inline Vec3 NextMove() const { return next_move_; };
+
 private:
     std::vector<TetEdgeRef> GetAllRingEdges() const;
 
@@ -69,6 +76,8 @@ private:
     Index id_;
     uint depth_;
     Real sdf_;
+    Vec3 next_move_;
+    Real quality_;
     std::vector<TetEdgeRef> incident_edges_;
     std::vector<TetFaceRef> incident_faces_;
     std::vector<TetrahedronRef> incident_tets_;

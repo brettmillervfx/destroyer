@@ -17,6 +17,7 @@ TetNode::TetNode(Real x, Real y, Real z, Index id) {
     position_ = Vec3(x,y,z);
     id_ = id;
     depth_ = 0;
+    quality_ = 0.0;
 
 }
 
@@ -25,6 +26,7 @@ TetNode::TetNode(Vec3 position, Index id) {
     position_ = position;
     id_ = id;
     depth_ = 0;
+    quality_ = 0.0;
 
 }
 
@@ -244,7 +246,10 @@ Vec3 TetNode::Normal() const {
     Vec3 normal(0.0,0.0,0.0);
 
     for (auto& face: incident_faces_) {
-        normal += face->Normal();
+        if (face->IsBoundary()) {
+            auto face_normal = -face->Normal();
+            normal += face_normal;
+        }
     }
 
     normal.normalize();
@@ -263,6 +268,19 @@ Real TetNode::GetMinAltitude() const {
     }
 
     return min_altitude;
+}
+
+Real TetNode::GetLocalQuality() const {
+
+    auto min_quality = 0.0;
+    for (auto& tet: incident_tets_) {
+        auto quality = tet->Quality();
+        if (quality>min_quality)
+            min_quality = quality;
+    }
+
+    return min_quality;
+
 }
 
 }; // namespace destroyer

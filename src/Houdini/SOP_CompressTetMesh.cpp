@@ -24,10 +24,14 @@ static PRM_Default soft_sweeps_prm_default(5);
 static PRM_Name hard_sweeps_prm_name("hardSweeps", "Hard Sweeps");
 static PRM_Default hard_sweeps_prm_default(5);
 
+static PRM_Name quality_threshold_prm_name("qualityThreshold", "Quality Threshold");
+static PRM_Default quality_threshold_prm_default(0.5);
+
 PRM_Template
         SOP_CompressTetMesh::myTemplateList[] = {
         PRM_Template(PRM_INT_J, 1, &soft_sweeps_prm_name, &soft_sweeps_prm_default),
         PRM_Template(PRM_INT_J, 1, &hard_sweeps_prm_name, &hard_sweeps_prm_default),
+        PRM_Template(PRM_FLT_J, 1, &quality_threshold_prm_name, &quality_threshold_prm_default),
         PRM_Template(),
 };
 
@@ -70,6 +74,7 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
 
     auto soft_sweeps = evalInt("softSweeps", 0, now);
     auto hard_sweeps = evalInt("hardSweeps", 0, now);
+    auto quality_threshold = evalFloat("qualityThreshold", 0, now);
 
     // Instantiate an empty TetMesh.
     auto tet_mesh = std::make_shared<CompressionTetMesh>(sdf_sampler);
@@ -79,11 +84,22 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    tet_mesh->Compress(soft_sweeps, hard_sweeps);
+    tet_mesh->Compress(soft_sweeps, hard_sweeps, quality_threshold);
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
     conditioner.convert();
+
+    auto quality_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_POINT, "quality", 1));
+    auto next_move_handle = GA_RWHandleV3(gdp->addFloatTuple(GA_ATTRIB_POINT, "next_move", 3));
+
+    tet_mesh->ResetNodeIterator();
+    auto node = tet_mesh->NextNode();
+    while(node != nullptr) {
+        quality_handle.set(node->Id(), node->Quality());
+        next_move_handle.set(node->Id(), node->NextMove());
+        node = tet_mesh->NextNode();
+    }
 
     // Tear down TetMesh.
     tet_mesh->TearDown();

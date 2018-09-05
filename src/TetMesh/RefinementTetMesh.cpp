@@ -351,11 +351,17 @@ int RefinementTetMesh::RemoveWeakExteriorTets() {
     // on one face. Such Tets are eliminated.
     int weak_ext_count = 0;
 
+    std::vector<TetrahedronRef> delete_list;
+
     for (auto& tet: tets_) {
-        if (tet.first->BoundaryFaceCount() == 3) {
-            DeleteTetrahedron(tet.first);
+        if (tet.first->BoundaryNodeCount() == 4) {
+            delete_list.push_back(tet.first);
             weak_ext_count++;
         }
+    }
+
+    for (auto& tet: delete_list) {
+        DeleteTetrahedron(tet);
     }
 
     return weak_ext_count;

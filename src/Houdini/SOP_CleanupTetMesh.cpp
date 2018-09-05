@@ -21,10 +21,14 @@ namespace destroyer {
 static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
 static PRM_Default max_iter_prm_default(3);
 
+//static PRM_Name cull_depth_prm_name("cullDepth", "Cull Depth");
+//static PRM_Default cull_depth_prm_default(2);
+
 
     PRM_Template
         SOP_CleanupTetMesh::myTemplateList[] = {
             PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
+            //PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default),
             PRM_Template(),
 };
 
@@ -68,6 +72,7 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
     auto now = context.getTime();
 
     auto max_iter = evalInt("maxIter", 0, now);
+    //auto cull_depth = evalInt("cullDepth", 0, now);
 
     // Instantiate an empty TetMesh.
     //auto tet_mesh = std::make_shared<RefinementTetMesh>(sdf_sampler);
@@ -80,6 +85,9 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
 
     if (!tet_mesh->Cleanup(max_iter))
         addWarning(SOP_MESSAGE, "Cleanup incomplete. Increase max iterations.");
+
+    // Delete tets outside the SDF
+    // tet_mesh->CullOutsideTets(cull_depth);
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);

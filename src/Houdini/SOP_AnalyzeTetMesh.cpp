@@ -56,12 +56,12 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     delete detail_gen;
 
     // Set up analysis primitive attributes.
-    //auto shortest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shortest_edge", 1));
-    //auto longest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "longest_edge", 1));
+    auto shortest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shortest_edge", 1));
+    auto longest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "longest_edge", 1));
     //auto shape_quality_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shape_quality", 1));
-    //auto aspect_ratio_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "aspect_ratio", 1));
-    //auto min_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "min_dihedral_angle", 1));
-    //auto max_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "max_dihedral_angle", 1));
+    auto aspect_ratio_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "aspect_ratio", 1));
+    auto min_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "min_dihedral_angle", 1));
+    auto max_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "max_dihedral_angle", 1));
 
     // Set up analysis point attributes
     auto boundary_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "boundary", 1));
@@ -69,7 +69,7 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     auto normal_handle = GA_RWHandleV3(gdp->addFloatTuple(GA_ATTRIB_POINT, "normal", 3));
 
     // Calculate attributes and assign values.
-    /*
+
     tet_mesh->ResetTetIterator();
     auto tet = tet_mesh->NextTet();
     while(tet != nullptr) {
@@ -82,9 +82,12 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
         min_angle_handle.set(tet->Id(), (dihedral_angles[0] * 180.0 / 3.141592653589793));
         max_angle_handle.set(tet->Id(), (dihedral_angles[1] * 180.0 / 3.141592653589793));
 
+        auto aspect_ratio = tet->CalculateAspectRatio();
+        aspect_ratio_handle.set(tet->Id(), aspect_ratio);
+
         tet = tet_mesh->NextTet();
     }
-    */
+
 
     tet_mesh->ResetNodeIterator();
     auto node = tet_mesh->NextNode();
@@ -94,6 +97,7 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
 
         auto normal = node->Normal();
         normal_handle.set(node->Id(), normal);
+
 
         node = tet_mesh->NextNode();
     }

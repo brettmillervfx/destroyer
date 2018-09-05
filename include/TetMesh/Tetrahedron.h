@@ -38,6 +38,8 @@ public:
 
     inline Index Id() const { return id_; };
 
+    inline Real Quality() const { return quality_; };
+
     // Returns true if the tetrahedron contains SDF interior.
     bool ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) const;
 
@@ -69,9 +71,7 @@ public:
     // Return the number of boundary faces on this tet.
     int BoundaryFaceCount() const;
 
-    // If one of the edges is "interior" (ie. both nodes are boundary although the edge is not),
-    // return that edge. Otherwise return nullptr.
-    //TetEdgeRef GetInteriorEdge() const;
+    int BoundaryNodeCount() const;
 
     // Update edge splitting configuration. This method should be called before making queries
     // regarding edge split counts or green/red categorization.
@@ -103,6 +103,8 @@ public:
     MinMaxReal GetMinMaxEdgeLengths() const;
     MinMaxReal GetMinMaxDihedralAngles() const;
 
+    Real CalculateAspectRatio();
+
 
 private:
     void GetNewEdges();
@@ -121,6 +123,7 @@ private:
     std::array<TetEdgeRef,6> edges_;
     std::array<TetFaceRef,4> faces_;
     std::bitset<6> split_edges_bitmask_;
+    Real quality_;
 
 };
 
