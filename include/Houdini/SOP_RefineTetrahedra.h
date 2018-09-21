@@ -17,7 +17,7 @@ namespace destroyer {
  is executed by bisecting each of the tetrahedron's edges and subdividing accordingly.
 
  Following this operation, it is important that the user pass the TetMesh to a
- SOP_CleanTetMesh, otherwise topology will be broken.
+ SOP_CleanTetMesh, otherwise topology will possibly be unusable for FEM simulation.
 
  Inputs:
     Input0:
@@ -38,22 +38,22 @@ namespace destroyer {
         perform the "green" subdivisions to complete the operation.
 */
 
-    class SOP_RefineTetrahedra : public SOP_Node
-    {
-    public:
-        SOP_RefineTetrahedra(OP_Network *net, const char *name, OP_Operator *op);
-        ~SOP_RefineTetrahedra() override = default;
+class SOP_RefineTetrahedra : public SOP_Node
+{
+public:
+    SOP_RefineTetrahedra(OP_Network *net, const char *name, OP_Operator *op);
+    ~SOP_RefineTetrahedra() override = default;
 
-        static PRM_Template myTemplateList[];
-        static OP_Node *myConstructor(OP_Network*, const char *, OP_Operator *);
+    static PRM_Template myTemplateList[];
+    static OP_Node *myConstructor(OP_Network*, const char *, OP_Operator *);
 
-    protected:
+protected:
 
-        const char *inputLabel(unsigned idx) const override;
+    const char *inputLabel(unsigned idx) const override;
 
-        OP_ERROR cookMySop(OP_Context &context) override;
+    OP_ERROR cookMySop(OP_Context &context) override;
 
 
-    };
+};
 
 }; // namespace destroyer

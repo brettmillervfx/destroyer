@@ -24,11 +24,14 @@ namespace destroyer {
         A VDB SDF grid describing the level set surface of the geometry to be inscribed.
 
     Parameters:
-
+        Soft Sweeps
+        Hard Sweeps
+        Quality Threshold
 
     Output:
         The tetrahedral mesh with boundary nodes conforming to the supplied level set surface. Tets are
-        optimized according to the user supplied weights.
+        optimized to conform as close as possible to ideal regular tetrahedra. (Although practically speaking,
+        this ideal will rarely be fully realized.)
 */
 
 class SOP_CompressTetMesh : public SOP_Node
