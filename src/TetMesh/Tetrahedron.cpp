@@ -119,6 +119,7 @@ bool Tetrahedron::ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) 
     if (CrossesLevelSet())
         return true;
 
+
     // Possibly the level set intersects the tet while all nodes are outside. This can
     // be detected if the smallest phi is smaller than the longest edge length.
     // If his condition is met, we recursively subdivide the faces to detect possible level set incursion.
@@ -143,6 +144,8 @@ bool Tetrahedron::ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) 
         if (EncroachedByLevelSet(recursion_depth, sdf_sampler, vertex3, vertex0, vertex1))
             return true;
     }
+
+
 
     return false;
 
@@ -405,6 +408,42 @@ bool Tetrahedron::IsPotentialRed() const {
     return true;
 }
 
+bool Tetrahedron::IsInverted() const {
+
+    // If a tet has a face with normals both pointing in the same direction, we know that either this tetrahedron
+    // or the adjacent is inverted. This test does not function on boundary faces, however, so the test is not
+    // perfect -- it may produce a false negative if all faces are boundary, for instance.
+    for (auto& face: faces_) {
+        if (!face->IsBoundary()) {
+            auto other_tet = face->GetOtherTet(TetrahedronRef(this));
+            auto my_normal = face->Normal(TetrahedronRef(this));
+            auto other_normal = face->Normal(other_tet);
+            if (my_normal.dot(other_normal)>0.0)
+                return true;
+        }
+    }
+
+    return false;
+
+}
+
+Real Tetrahedron::EdgeLengthRatio() const {
+
+    Real max_length = 0.0;
+    Real min_length = std::numeric_limits<Real>::max();
+
+    for (auto& edge: edges_) {
+        auto length = edge->Length();
+        if (length > max_length)
+            max_length = length;
+        if (length < min_length)
+            min_length = length;
+    }
+
+    return min_length/max_length;
+
+}
+
 Vec3 Tetrahedron::Centroid() const {
 
     Vec3 centroid(0.0,0.0,0.0);
@@ -500,6 +539,59 @@ Real Tetrahedron::CalculateAspectRatio() {
     quality_ = edge_lengths[1] / altitude;
 
     return quality_;
+
+}
+
+Real Tetrahedron::Volume() const {
+
+    auto edge03 = edges_[EDGE_0_3]->AsVector();
+    auto edge13 = edges_[EDGE_1_3]->AsVector();
+    auto edge23 = edges_[EDGE_2_3]->AsVector();
+    auto volume = abs(dot(edge03,cross(edge13,edge23))/6.0);
+
+    return volume;
+
+}
+
+Real Tetrahedron::Inradius() const {
+
+    Real face_area_sum = 0.0;
+    for (auto& face: faces_)
+        face_area_sum += face->Area();
+
+    auto inradius = (3.0 * Volume()) / face_area_sum;
+
+    return inradius;
+
+}
+
+Real Tetrahedron::Circumradius() const {
+
+    auto a = (nodes_[1]->Position() - nodes_[0]->Position()).length();
+    auto b = (nodes_[2]->Position() - nodes_[0]->Position()).length();
+    auto c = (nodes_[3]->Position() - nodes_[0]->Position()).length();
+
+    auto A = (nodes_[3]->Position() - nodes_[2]->Position()).length();
+    auto B = (nodes_[3]->Position() - nodes_[1]->Position()).length();
+    auto C = (nodes_[2]->Position() - nodes_[1]->Position()).length();
+
+    auto p = (a*A + b*B + c*C) / 2.0;
+
+    auto radicand = p * (p - a*A) * (p - b*B) * (p - c*C);
+
+    return sqrt(radicand) / (6.0 * Volume());
+
+}
+
+Real Tetrahedron::QualityMeasure() const {
+
+    auto inradius = Inradius();
+    auto insphere_area = 4.0 * 3.14159265359 * inradius * inradius;
+
+    auto circumradius = Circumradius();
+    auto circumsphere_area = 4.0 * 3.14159265359 * circumradius * circumradius;
+
+    return 9.0 * ( insphere_area / circumsphere_area );
 
 }
 

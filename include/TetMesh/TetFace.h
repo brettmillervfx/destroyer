@@ -44,9 +44,13 @@ public:
 
     Vec3 Normal(TetrahedronRef owner_tet=nullptr) const;
 
+    Real EdgeLengthRatio() const;
+
     Real MinNodeAltitude() const;
     Real MaxEdgeLength() const;
     Real MaxAngle() const;
+
+    Real Area() const;
 
 
 private:

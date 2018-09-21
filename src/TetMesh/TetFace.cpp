@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <limits>
 
 #include "TetMesh/TetFace.h"
 #include "TetMesh/TetEdge.h"
@@ -180,6 +181,23 @@ Vec3 TetFace::Normal(TetrahedronRef owner_tet) const {
 
 }
 
+Real TetFace::EdgeLengthRatio() const {
+
+    Real max_length = 0.0;
+    Real min_length = std::numeric_limits<Real>::max();
+
+    for (auto& edge: edges_) {
+        auto length = edge->Length();
+        if (length > max_length)
+            max_length = length;
+        if (length < min_length)
+            min_length = length;
+    }
+
+    return min_length/max_length;
+
+}
+
 Real TetFace::MinNodeAltitude() const {
 
     Real min_altitude = std::numeric_limits<Real>::max();
@@ -235,6 +253,16 @@ Real TetFace::MaxAngle() const {
     }
 
     return node_angle;
+
+}
+
+Real TetFace::Area() const {
+
+    auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
+    auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
+    auto area = cross(edge0,edge1).length() / 2.0;
+
+    return area;
 
 }
 

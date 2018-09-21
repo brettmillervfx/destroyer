@@ -2,6 +2,8 @@
 // Created by Brett Miller on 8/15/18.
 //
 
+// https://en.wikipedia.org/wiki/Tetrahedron#More_vector_formulas_in_a_general_tetrahedron
+
 #pragma once
 
 #include "TetMesh/Types.h"
@@ -96,6 +98,10 @@ public:
     // Returns true if the tet is not already a Red tet and is unsuitable for Green refinement.
     bool IsPotentialRed() const;
 
+    bool IsInverted() const;
+
+    Real EdgeLengthRatio() const;
+
     Vec3 Centroid() const;
 
     Real Altitude(int node_index) const;
@@ -104,6 +110,11 @@ public:
     MinMaxReal GetMinMaxDihedralAngles() const;
 
     Real CalculateAspectRatio();
+
+    Real Volume() const;
+    Real Inradius() const;
+    Real Circumradius() const;
+    Real QualityMeasure() const;
 
 
 private:

@@ -59,7 +59,10 @@ public:
 
     Vec3 Normal() const;
 
+    bool IsInverted() const;
+
     Real GetMinAltitude() const;
+    Real GetMinEdgeLength() const;
 
     Real GetLocalQuality() const;
 

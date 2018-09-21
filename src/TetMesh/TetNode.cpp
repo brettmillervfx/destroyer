@@ -257,6 +257,17 @@ Vec3 TetNode::Normal() const {
 
 }
 
+bool TetNode::IsInverted() const {
+
+    for (auto& tet: GetIncidentTets()) {
+        if (tet->IsInverted())
+            return true;
+    }
+
+    return false;
+
+}
+
 Real TetNode::GetMinAltitude() const {
 
     auto min_altitude = std::numeric_limits<Real>::max();
@@ -270,11 +281,23 @@ Real TetNode::GetMinAltitude() const {
     return min_altitude;
 }
 
+Real TetNode::GetMinEdgeLength() const {
+
+    auto min_length = std::numeric_limits<Real>::max();
+    for (auto& edge: incident_edges_) {
+        auto length = edge->Length();
+        if (length<min_length)
+            min_length = length;
+    }
+
+    return min_length;
+}
+
 Real TetNode::GetLocalQuality() const {
 
     auto min_quality = 0.0;
     for (auto& tet: incident_tets_) {
-        auto quality = tet->Quality();
+        auto quality = tet->QualityMeasure();
         if (quality>min_quality)
             min_quality = quality;
     }

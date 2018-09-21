@@ -21,14 +21,10 @@ namespace destroyer {
 static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
 static PRM_Default max_iter_prm_default(3);
 
-//static PRM_Name cull_depth_prm_name("cullDepth", "Cull Depth");
-//static PRM_Default cull_depth_prm_default(2);
-
 
     PRM_Template
         SOP_CleanupTetMesh::myTemplateList[] = {
             PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
-            //PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default),
             PRM_Template(),
 };
 

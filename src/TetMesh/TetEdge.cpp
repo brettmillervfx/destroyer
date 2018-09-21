@@ -27,15 +27,15 @@ TetEdge::~TetEdge() {
 
 }
 
-bool TetEdge::HasMidpoint() const {
-
-    return (midpoint_ != nullptr);
-
-}
-
 Vec3 TetEdge::MidpointPosition() const {
 
     return (nodes_[0]->Position() + nodes_[1]->Position()) / 2.0;
+
+}
+
+bool TetEdge::HasMidpoint() const {
+
+    return (midpoint_ != nullptr);
 
 }
 
@@ -135,6 +135,27 @@ bool TetEdge::IsConnected() const {
 
 }
 
+Real TetEdge::Length() const {
+
+    Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
+    return edge_vec.length();
+
+}
+
+Vec3 TetEdge::AsVector() const {
+
+    Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
+    return edge_vec;
+
+}
+
+bool TetEdge::IsNonManifold() const {
+
+    // The edge is considered non-manifold if more that two boundary faces are connected to it.
+    return (IncidentBoundaryFaceCount()>2);
+
+}
+
 void TetEdge::ConnectFace(TetFaceRef face) {
 
     incident_faces_.push_back(face);
@@ -160,27 +181,6 @@ void TetEdge::DisconnectTetrahedron(TetrahedronRef tet) {
     auto found_tet = std::find(incident_tets_.begin(), incident_tets_.end(), tet);
     if (found_tet != incident_tets_.end())
         incident_tets_.erase(found_tet);
-}
-
-Real TetEdge::Length() const {
-
-    Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
-    return edge_vec.length();
-
-}
-
-Vec3 TetEdge::AsVector() const {
-
-    Vec3 edge_vec = nodes_[0]->Position() - nodes_[1]->Position();
-    return edge_vec;
-
-}
-
-bool TetEdge::IsNonManifold() const {
-
-    // The edge is considered non-manifold if more that two boundary faces are connected to it.
-    return (IncidentBoundaryFaceCount()>2);
-
 }
 
 }; // namespace destroyer

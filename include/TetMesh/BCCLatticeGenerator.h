@@ -11,11 +11,6 @@
 
 namespace destroyer {
 
-
-// Minimum number of BCC Lattice cells for each dimension
-#define MIN_GRID_COUNT 4.0
-
-
 /*
 
  ThreeDimVector class
@@ -78,21 +73,33 @@ T ThreeDimVector<T>::get(int i, int j, int k) const {
  BCCLatticeGenerator class
 
  Fills an empty TetMesh with a lattice of tetrahedrons comprising the triangulation of the
- BCC lattice spanning the specified bounding box. Edge length of tetrahedra is specified.
+ body centered cubic lattice spanning the specified bounding box. Edge length of tetrahedra is specified.
+
+ The BCC lattice consists of nodes at every point of a Cartesian grid along with the nodes located at the cell
+ centers. These node locations may be viewed as belonging to two interlaced grids. The BCC lattice is the Delaunay
+ complex of the interlaced grid nodes, and thus possesses all properties of a Delaunay tetrahedralization.
 
 */
+
+// Minimum number of BCC Lattice cells for each dimension
+#define MIN_GRID_COUNT 4.0
 
 class BCCLatticeGenerator
 {
     using GridPtr = typename std::unique_ptr<ThreeDimVector<TetNodeRef> >;
 
 public:
+
+    // Constructor should be supplied with the pointer to an instantiated (and empty) TetMesh,
+    // the target edge length for the tetrahedra, and the world space bounding box.
     BCCLatticeGenerator(TetMeshPtr tet_mesh, Real edge_length,
                         Real min_x, Real min_y, Real min_z,
                         Real max_x, Real max_y, Real max_z);
+
     ~BCCLatticeGenerator() = default;
 
-    // Tesselate the bounding box domain.
+    // Tesselate the bounding box domain. The contained TetMesh will be filled with a tetrahedral mesh
+    // essentially identical to the Delaunay tetrahedralization of the BCC nodes within the prescribed bounds.
     void FillTetMesh();
 
 private:

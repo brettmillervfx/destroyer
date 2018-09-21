@@ -6,7 +6,7 @@ include_directories(${_houdini_include_dir})
 add_executable( runTetMeshChecks
         TetNode_check.cpp
         TetEdge_check.cpp
-        #Tetrahedron_check.cpp
+        Tetrahedron_check.cpp
         runTetMeshTests.cpp
         TetMesh_test.cpp
         TetFace_check.cpp
