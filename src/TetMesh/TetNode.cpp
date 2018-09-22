@@ -293,17 +293,25 @@ Real TetNode::GetMinEdgeLength() const {
     return min_length;
 }
 
-Real TetNode::GetLocalQuality() const {
+Real TetNode::CalculateLocalQuality() const {
 
-    auto min_quality = 0.0;
+    // A node's local quality is that of the lowest quality incident tetrahedron.
+    auto min_quality = std::numeric_limits<Real>::max();
     for (auto& tet: incident_tets_) {
         auto quality = tet->QualityMeasure();
-        if (quality>min_quality)
+        if (quality<min_quality)
             min_quality = quality;
     }
 
     return min_quality;
 
 }
+
+void TetNode::CacheLocalQuality() {
+
+    quality_ = CalculateLocalQuality();
+
+}
+
 
 }; // namespace destroyer

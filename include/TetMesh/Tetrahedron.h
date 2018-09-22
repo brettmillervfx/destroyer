@@ -40,7 +40,7 @@ public:
 
     inline Index Id() const { return id_; };
 
-    inline Real Quality() const { return quality_; };
+    //inline Real Quality() const { return quality_; };
 
     // Returns true if the tetrahedron contains SDF interior.
     bool ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) const;
@@ -109,7 +109,7 @@ public:
     MinMaxReal GetMinMaxEdgeLengths() const;
     MinMaxReal GetMinMaxDihedralAngles() const;
 
-    Real CalculateAspectRatio();
+    //Real CalculateAspectRatio();
 
     Real Volume() const;
     Real Inradius() const;
@@ -134,7 +134,7 @@ private:
     std::array<TetEdgeRef,6> edges_;
     std::array<TetFaceRef,4> faces_;
     std::bitset<6> split_edges_bitmask_;
-    Real quality_;
+    //Real quality_;
 
 };
 

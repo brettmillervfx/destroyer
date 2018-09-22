@@ -30,11 +30,8 @@ using RandomGenerator = typename std::mt19937;
 
 #define BOUNDARY_SEARCH_PATTERN_SIZE 7
 #define INTERIOR_SEARCH_PATTERN_SIZE 11
-#define SOFT_BOUNDARY_COMPRESS 0.05
-#define SOFT_STEP_SIZE 0.2
-#define HARD_BOUNDARY_COMPRESS 1.0
-#define HARD_STEP_SIZE 0.5
 #define MAX_STRIKES 4
+
 
 class CompressionTetMesh : public TetMesh
 {
@@ -46,18 +43,17 @@ public:
     ~CompressionTetMesh() = default;
 
     // Compress the nodes of the TetMesh.
-    void Compress(int soft_sweeps, int hard_sweeps, Real quality_threshold);
+    void Compress(int sweeps, Real boundary_step, Real interior_step, Real quality_threshold);
 
 private:
-    void SortNodesByDepth();
+    void SortNodesByQuality();
     void GenerateSearchTemplates();
-    void CompressBoundaryNodes(Real compression_amount, Real quality_threshold);
-    void OptimizeNodes(Real initial_step, int max_strikes, Real quality_threshold);
-    void Sweep(Real initial_step, int max_strikes, Real quality_threshold, bool reverse);
-    void AdjustNode(TetNodeRef node, RandomGenerator generator, Real initial_step, int max_strikes);
+    void CompressBoundaryNodes(Real compression_amount);
+    void OptimizeNodes(Real initial_step, Real quality_threshold);
+    void Sweep(Real initial_step, Real quality_threshold);
+    void AdjustNode(TetNodeRef node, RandomGenerator generator, Real initial_step);
     std::vector<Vec3> ConstructRandomPatternBasis(TetNodeRef node, RandomGenerator generator) const;
     Real QualityMetric(TetNodeRef node) const;
-    //Real InteriorQualityMetric(TetNodeRef node) const;
     void FindLowestQuality();
 
 private:

@@ -59,7 +59,6 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     auto shortest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shortest_edge", 1));
     auto longest_edge_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "longest_edge", 1));
     auto shape_quality_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "shape_quality", 1));
-    auto aspect_ratio_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "aspect_ratio", 1));
     auto min_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "min_dihedral_angle", 1));
     auto max_angle_handle = GA_RWHandleR(gdp->addFloatTuple(GA_ATTRIB_PRIMITIVE, "max_dihedral_angle", 1));
 
@@ -81,9 +80,6 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
         MinMaxReal dihedral_angles = tet->GetMinMaxDihedralAngles();
         min_angle_handle.set(tet->Id(), (dihedral_angles[0] * 180.0 / 3.141592653589793));
         max_angle_handle.set(tet->Id(), (dihedral_angles[1] * 180.0 / 3.141592653589793));
-
-        auto aspect_ratio = tet->CalculateAspectRatio();
-        aspect_ratio_handle.set(tet->Id(), aspect_ratio);
 
         auto shape_quality = tet->QualityMeasure();
         shape_quality_handle.set(tet->Id(), shape_quality);

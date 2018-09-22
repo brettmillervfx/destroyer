@@ -76,7 +76,6 @@ Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetN
 
     tet_mesh_ = tet_mesh;
     id_ = id;
-    quality_ = 0.0;
 
     nodes_[0] = n0;
     n0->ConnectTetrahedron(this);
@@ -530,6 +529,7 @@ MinMaxReal Tetrahedron::GetMinMaxDihedralAngles() const {
 
 }
 
+/*
 Real Tetrahedron::CalculateAspectRatio() {
 
     // Aspect ratio is defined as maximum edge length divided by minimum altitude.
@@ -541,6 +541,7 @@ Real Tetrahedron::CalculateAspectRatio() {
     return quality_;
 
 }
+*/
 
 Real Tetrahedron::Volume() const {
 
@@ -585,11 +586,17 @@ Real Tetrahedron::Circumradius() const {
 
 Real Tetrahedron::QualityMeasure() const {
 
+    // Quality heiristic is the ratio of the inscribed sphere area
+    // to the circumscribed sphere area. We can eliminate the constants
+    // in the area calculation (as they cancel out). We then multiply the
+    // ratio to normalize, ie. a regular tetrahedron has a quality of 1.0.
+    // Lower results denote lower quality.
+
     auto inradius = Inradius();
-    auto insphere_area = 4.0 * 3.14159265359 * inradius * inradius;
+    auto insphere_area = inradius * inradius;
 
     auto circumradius = Circumradius();
-    auto circumsphere_area = 4.0 * 3.14159265359 * circumradius * circumradius;
+    auto circumsphere_area = circumradius * circumradius;
 
     return 9.0 * ( insphere_area / circumsphere_area );
 
