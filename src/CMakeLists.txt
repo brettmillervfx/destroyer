@@ -14,12 +14,14 @@ add_library( ${library_name} SHARED
         TetMesh/BCCLatticeGenerator.cpp
         TetMesh/TetMeshToHoudiniDetail.cpp
         TetMesh/RefinementTetMesh.cpp
+        TetMesh/ClipTetMesh.cpp
         TetMesh/CompressionTetMesh.cpp
         TetMesh/TetFace.cpp
         TetMesh/TetEdge.cpp
         Houdini/Registration.cpp
         Houdini/SOP_AnalyzeTetMesh.cpp
         Houdini/SOP_CleanupTetMesh.cpp
+        Houdini/SOP_ClipTetMesh.cpp
         Houdini/SOP_CompressTetMesh.cpp
         Houdini/SOP_RefineTetrahedra.cpp
         Houdini/SOP_TetrahedralizeVDB.cpp

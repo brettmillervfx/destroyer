@@ -76,6 +76,7 @@ Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetN
 
     tet_mesh_ = tet_mesh;
     id_ = id;
+    boundary_split_case_ = 0;
 
     nodes_[0] = n0;
     n0->ConnectTetrahedron(this);
@@ -599,6 +600,105 @@ Real Tetrahedron::QualityMeasure() const {
     auto circumsphere_area = circumradius * circumradius;
 
     return 9.0 * ( insphere_area / circumsphere_area );
+
+}
+
+int Tetrahedron::CountInNodes() const {
+
+    int count = 0;
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == IN_SDF)
+            count++;
+
+    return count;
+
+}
+
+std::vector<TetNodeRef> Tetrahedron::InNodes() const {
+
+    std::vector<TetNodeRef> in_nodes;
+
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == IN_SDF)
+            in_nodes.push_back(node);
+
+    return in_nodes;
+
+}
+
+int Tetrahedron::CountOnNodes() const {
+
+    int count = 0;
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == ON_SDF)
+            count++;
+
+    return count;
+
+}
+
+std::vector<TetNodeRef> Tetrahedron::OnNodes() const {
+
+    std::vector<TetNodeRef> on_nodes;
+
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == ON_SDF)
+            on_nodes.push_back(node);
+
+    return on_nodes;
+
+}
+
+int Tetrahedron::CountOutNodes() const {
+
+    int count = 0;
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == OUT_SDF)
+            count++;
+
+    return count;
+
+}
+
+std::vector<TetNodeRef> Tetrahedron::OutNodes() const {
+
+    std::vector<TetNodeRef> out_nodes;
+
+    for (auto& node: nodes_)
+        if (node->SdfFlag() == OUT_SDF)
+            out_nodes.push_back(node);
+
+    return out_nodes;
+
+}
+
+void Tetrahedron::SplitBoundaryCrossingEdges() {
+
+    for (auto edge_index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3} ) {
+
+        auto edge = edges_[edge_index];
+
+        if (!edge->HasMidpoint()) {
+
+            auto node0 = edge->GetFirstNode();
+            auto node1 = edge->GetOtherNode(node0);
+
+            auto node0_flag = node0->SdfFlag();
+            auto node1_flag = node1->SdfFlag();
+
+            if (node0_flag != ON_SDF & node1_flag != ON_SDF) {
+                auto node0_opposite = node0_flag==IN_SDF? OUT_SDF : IN_SDF;
+                if (node1_flag == node0_opposite) {
+                    auto level_set_parameter = abs(node0->Sdf()) / (abs(node0->Sdf()) + abs(node1->Sdf()));
+                    auto midpoint_pos = node0->Position() + (node1->Position()-node0->Position()) * level_set_parameter;
+                    auto midpoint = tet_mesh_->AddNode(midpoint_pos[0], midpoint_pos[1], midpoint_pos[2]);
+                    edge->SetMidpoint(midpoint);
+                }
+            }
+
+        }
+
+    }
 
 }
 

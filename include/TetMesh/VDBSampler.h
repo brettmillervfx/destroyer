@@ -40,7 +40,8 @@ public:
     UT_BoundingBox GetBBox() const;
 
     // Sample the VDB and apply the fit function if required.
-    virtual Real Sample(Real x, Real y, Real z) const;
+    Real Sample(Real x, Real y, Real z) const;
+    Vec3 SampleGradient(Real x, Real y, Real z) const;
 
     inline Real GetBackgroundValue() const { return background_; };
 

@@ -45,7 +45,6 @@ namespace destroyer {
     using VDBGridPtr = const GEO_PrimVDB*;
     using VDBSamplerPtr = typename std::shared_ptr<VDBSampler>;
 
-    //using Vec3 = Eigen::Vector3d;
     using Vec3 = UT_Vector3;
 
     using MinMaxReal = typename std::array<Real,2>;

@@ -11,6 +11,14 @@
 
 namespace destroyer {
 
+
+enum SDFFlag {
+    IN_SDF = 0,
+    OUT_SDF = 1,
+    ON_SDF= 2,
+    NO_FLAG = 3
+};
+
 class TetNode {
 public:
     TetNode(Real x, Real y, Real z, Index id=0);
@@ -28,6 +36,10 @@ public:
 
     Real Sdf() const;
     void SetSdf(Real sdf);
+    void SetSDFFlag(SDFFlag flag);
+    SDFFlag SdfFlag() const;
+
+    bool ConnectedToSdfFlag(SDFFlag flag);
 
     bool IsConnected() const;
 
@@ -78,6 +90,7 @@ private:
     uint depth_;
     Real sdf_;
     Real quality_;
+    SDFFlag sdf_flag_;
     std::vector<TetEdgeRef> incident_edges_;
     std::vector<TetFaceRef> incident_faces_;
     std::vector<TetrahedronRef> incident_tets_;

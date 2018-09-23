@@ -116,6 +116,18 @@ public:
     Real Circumradius() const;
     Real QualityMeasure() const;
 
+    int CountInNodes() const;
+    std::vector<TetNodeRef> InNodes() const;
+    int CountOnNodes() const;
+    std::vector<TetNodeRef> OnNodes() const;
+    int CountOutNodes() const;
+    std::vector<TetNodeRef> OutNodes() const;
+
+    inline void SetBoundarySplitCase(int split_case) { boundary_split_case_ = split_case; };
+    inline int BoundarySplitCase() const { return boundary_split_case_; };
+
+    void SplitBoundaryCrossingEdges();
+
 
 private:
     void GetNewEdges();
@@ -134,7 +146,7 @@ private:
     std::array<TetEdgeRef,6> edges_;
     std::array<TetFaceRef,4> faces_;
     std::bitset<6> split_edges_bitmask_;
-    //Real quality_;
+    int boundary_split_case_;
 
 };
 

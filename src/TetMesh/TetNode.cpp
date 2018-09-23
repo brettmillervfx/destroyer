@@ -78,6 +78,31 @@ void TetNode::SetSdf(Real sdf) {
 
 }
 
+void TetNode::SetSDFFlag(SDFFlag flag) {
+
+    sdf_flag_ = flag;
+
+}
+
+SDFFlag TetNode::SdfFlag() const {
+
+    return sdf_flag_;
+
+}
+
+bool TetNode::ConnectedToSdfFlag(SDFFlag flag) {
+
+    for (auto& edge: incident_edges_) {
+
+        auto other_node = edge->GetOtherNode(this);
+        if (other_node->SdfFlag() == flag)
+            return true;
+
+    }
+
+    return false;
+}
+
 bool TetNode::IsConnected() const {
 
     // We consider a node disconnected if it has no incident tetrahedra.
@@ -229,8 +254,6 @@ std::vector<TetEdgeRef> TetNode::GetAllRingEdges() const {
 
     // Filter the boundary faces and collect the edges forming rings around this node.
     std::vector<TetEdgeRef> ring_edges;
-
-    //std::cout << "I have " << incident_faces_.size() << " faces" << std::endl;
 
     for (auto& face: incident_faces_) {
         if (face->IsBoundary())
