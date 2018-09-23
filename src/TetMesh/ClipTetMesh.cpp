@@ -256,6 +256,14 @@ void ClipTetMesh::ProcessCase5Split(TetrahedronRef tet) {
     auto diagonal_2_0 = (mid_nodes[1]->Position() - in_nodes[0]->Position()).length2();
     auto diagonal_2_1 = (mid_nodes[2]->Position() - in_nodes[1]->Position()).length2();
 
+    /*
+    if ((diagonal_0_1 < diagonal_1_0) & (diagonal_1_2 < diagonal_2_1) & (diagonal_2_0 < diagonal_0_2)) {
+        std::cout << "special case 1" << std::endl;
+
+    } else if ((diagonal_0_1 > diagonal_1_0) & (diagonal_1_2 > diagonal_2_1) & (diagonal_2_0 > diagonal_0_2)) {
+        std::cout << "special case 2" << std::endl;
+
+    } else */
     if ((diagonal_0_1 < diagonal_1_0) & (diagonal_0_2 < diagonal_2_0)) {
 
         AddTetrahedron(in_nodes[0], in_nodes[1], in_nodes[2], mid_nodes[0]);
@@ -263,8 +271,8 @@ void ClipTetMesh::ProcessCase5Split(TetrahedronRef tet) {
             AddTetrahedron(in_nodes[2], mid_nodes[0], mid_nodes[1], mid_nodes[2]);
             AddTetrahedron(in_nodes[1], mid_nodes[1], in_nodes[2], mid_nodes[0]);
         } else {
-            AddTetrahedron(in_nodes[1], mid_nodes[0], mid_nodes[2], mid_nodes[1]);
-            AddTetrahedron(in_nodes[2], mid_nodes[2], in_nodes[1], mid_nodes[0]);
+            AddTetrahedron(in_nodes[1], mid_nodes[1], mid_nodes[2], mid_nodes[0]);
+            AddTetrahedron(in_nodes[2], in_nodes[1], mid_nodes[2],  mid_nodes[0]);
         }
 
     } else if ((diagonal_1_0 < diagonal_0_1) & (diagonal_1_2 < diagonal_2_1)) {

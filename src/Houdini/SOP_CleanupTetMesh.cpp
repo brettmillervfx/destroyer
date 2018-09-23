@@ -21,11 +21,31 @@ namespace destroyer {
 static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
 static PRM_Default max_iter_prm_default(3);
 
+static PRM_Name lone_tets_prm_name("refineLoneTets", "Refine Lone Tets");
+static PRM_Default lone_tets_prm_default(true);
 
-    PRM_Template
-        SOP_CleanupTetMesh::myTemplateList[] = {
-            PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
-            PRM_Template(),
+static PRM_Name weak_ext_tets_prm_name("removeWeakExteriorTets", "Remove Weak Exterior Tets");
+static PRM_Default weak_ext_tets_prm_default(true);
+
+static PRM_Name weak_int_edges_prm_name("splitWeakInteriorEdges", "Split Weak Interior Edges");
+static PRM_Default weak_int_edges_prm_default(true);
+
+static PRM_Name nonmanifold_edges_prm_name("refineNonmanifoldEdges", "Refine Non-Manifold Edges");
+static PRM_Default nonmanifold_edges_prm_default(true);
+
+static PRM_Name nonmanifold_nodes_prm_name("refineNonmanifoldNodes", "Refine Non-Manifold Nodes");
+static PRM_Default nonmanifold_nodes_prm_default(true);
+
+
+PRM_Template
+SOP_CleanupTetMesh::myTemplateList[] = {
+        PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
+        PRM_Template(PRM_TOGGLE, 1, &lone_tets_prm_name, &lone_tets_prm_default),
+        PRM_Template(PRM_TOGGLE, 1, &weak_ext_tets_prm_name, &weak_ext_tets_prm_default),
+        PRM_Template(PRM_TOGGLE, 1, &weak_int_edges_prm_name, &weak_int_edges_prm_default),
+        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_edges_prm_name, &nonmanifold_edges_prm_default),
+        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_nodes_prm_name, &nonmanifold_nodes_prm_default),
+        PRM_Template(),
 };
 
 
@@ -54,24 +74,17 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
 
     duplicateSource(0, context);
 
-    /*
-    // An SDF sampler wil be necessary for tetrahedra culling and surface compression.
-    auto sdf_sampler = std::make_shared<VDBSampler>(inputGeo(1, context));
-
-    if (!sdf_sampler->IsValid()) {
-        addError(SOP_ERR_INVALID_SRC, "No SDF VDB found in second input.");
-        return error();
-    }
-    */
-
     // Collect parameters.
     auto now = context.getTime();
 
     auto max_iter = evalInt("maxIter", 0, now);
-    //auto cull_depth = evalInt("cullDepth", 0, now);
+    auto lone_tets = evalInt("refineLoneTets", 0, now);
+    auto weak_tets = evalInt("removeWeakExteriorTets", 0, now);
+    auto weak_edges = evalInt("splitWeakInteriorEdges", 0, now);
+    auto nonmanifold_edges = evalInt("refineNonmanifoldEdges", 0, now);
+    auto nonmanifold_nodes = evalInt("refineNonmanifoldNodes", 0, now);
 
     // Instantiate an empty TetMesh.
-    //auto tet_mesh = std::make_shared<RefinementTetMesh>(sdf_sampler);
     auto tet_mesh = std::make_shared<RefinementTetMesh>();
 
     // Fill the TetMesh using detail geometry.
@@ -79,11 +92,8 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
     detail_generator->FillTetMesh();
     delete detail_generator;
 
-    if (!tet_mesh->Cleanup(max_iter))
+    if (!tet_mesh->Cleanup(lone_tets, weak_tets, weak_edges, nonmanifold_edges, nonmanifold_nodes, max_iter))
         addWarning(SOP_MESSAGE, "Cleanup incomplete. Increase max iterations.");
-
-    // Delete tets outside the SDF
-    // tet_mesh->CullOutsideTets(cull_depth);
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
@@ -91,7 +101,6 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
 
     // Tear down TetMesh.
     tet_mesh->TearDown();
-
 
 
     return error();
@@ -105,8 +114,6 @@ SOP_CleanupTetMesh::inputLabel(unsigned idx) const
     {
         case 0:
             return "Tet Mesh Geo";
-        //case 1:
-        //    return "VDB Level Set";
         default:
             return "default";
     }

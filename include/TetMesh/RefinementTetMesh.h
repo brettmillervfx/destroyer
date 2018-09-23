@@ -21,7 +21,7 @@ public:
     // Apply Red Green Hierarchical Refinement to tets in an ID group.
     void RefineIdGroup(const std::set<Index> id_group);
 
-    bool Cleanup(int max_iterations=2);
+    bool Cleanup(int lone_tets, int weak_tets, int weak_edges, int nonmanifold_edges, int nonmanifold_nodes, int max_iterations=2);
 
 
 private:
