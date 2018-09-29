@@ -136,6 +136,7 @@ public:
 
 
 private:
+    void CorrectWinding();
     void GetNewEdges();
     void GetNewFaces();
 

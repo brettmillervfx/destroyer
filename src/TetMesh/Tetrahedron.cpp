@@ -87,6 +87,8 @@ Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetN
     nodes_[3] = n3;
     n3->ConnectTetrahedron(this);
 
+    CorrectWinding();
+
     GetNewEdges();
     GetNewFaces();
 
@@ -749,6 +751,25 @@ void Tetrahedron::SplitBoundaryCrossingEdges() {
 
         }
 
+    }
+
+}
+
+void Tetrahedron::CorrectWinding() {
+
+    // The nodes may be an any arbitrary order, but in order to maintain clear
+    // face normals, we expect nodes to be re-ordered so that the winding order of the
+    // face opposite the first node is counter-clockwise.
+
+    auto centroid = Centroid();
+
+    // if the face normal of the opposite face is pointing out, we're good.
+    // Otherwise, reverse the order.
+    auto normal = cross((nodes_[3]->Position() - nodes_[2]->Position()),(nodes_[1]->Position() - nodes_[1]->Position()));
+    if (dot(normal, (nodes_[2]->Position() - centroid)) < 0.0) {
+        auto tmp = nodes_[3];
+        nodes_[3] = nodes_[1];
+        nodes_[1] = tmp;
     }
 
 }
