@@ -16,15 +16,17 @@ TEST(TetFaceCheck, test_normal) {
     auto node1 = mesh.AddNode(1.0, 0.0, 1.0);
     auto node2 = mesh.AddNode(0.0, 0.0, 1.0);
     auto node3 = mesh.AddNode(0.0, -1.0, 0.0);
-    mesh.AddTetrahedron(node0,node1,node2,node3);
+    mesh.AddTetrahedron(node0, node1, node2, node3);
     mesh.ResetTetIterator();
     auto tet = mesh.NextTet();
-    auto face = tet->GetFaceRef(0);
+    auto centroid = tet->Centroid();
 
-    auto normal = face->Normal();
-    EXPECT_EQ(normal[0], 0.0);
-    EXPECT_EQ(normal[1], -1.0);
-    EXPECT_EQ(normal[2], 0.0);
+    for (int i = 0; i < 4; i++) {
+        auto face = tet->GetFaceRef(i);
+        auto normal = face->Normal();
+        auto face_centroid = face->Centroid();
+        EXPECT_GT(dot(normal, (face_centroid - centroid)), 0.0);
+    }
 }
 
 TEST(TetFaceCheck, test_area) {

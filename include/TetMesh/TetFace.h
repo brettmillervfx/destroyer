@@ -53,6 +53,8 @@ public:
 
     Real Area() const;
 
+    Vec3 Centroid() const;
+
 
 private:
     std::vector<TetrahedronRef> incident_tets_;

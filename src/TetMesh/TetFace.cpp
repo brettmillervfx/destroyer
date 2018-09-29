@@ -179,19 +179,19 @@ bool TetFace::HasEdge(TetEdgeRef edge) const {
 
 Vec3 TetFace::Normal(TetrahedronRef owner_tet) const {
 
-    auto edge0 = nodes_[1]->Position() - nodes_[0]->Position(); //edges_[0]->AsVector();
-    auto edge1 = nodes_[2]->Position() - nodes_[0]->Position(); //edges_[1]->AsVector();
+    auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
+    auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
 
     auto normal = cross(edge0, edge1);
 
     // Ensure that the vector is facing out from the tetrahedron.
-    Vec3 from_centroid(0.0,0.0,0.0);
+    Vec3 out_vector(0.0,0.0,0.0);
     if (owner_tet == nullptr) {
-        from_centroid = nodes_[0]->Position() - incident_tets_[0]->Centroid();
+        out_vector = Centroid() - incident_tets_[0]->Centroid();
     } else
-        from_centroid = nodes_[0]->Position() - owner_tet->Centroid();
+        out_vector = Centroid() - owner_tet->Centroid();
 
-    if (normal.dot(from_centroid) > 0.0)
+    if (normal.dot(out_vector) < 0.0)
         normal *= -1.0;
 
     normal.normalize();
@@ -282,6 +282,18 @@ Real TetFace::Area() const {
     auto area = cross(edge0,edge1).length() / 2.0;
 
     return area;
+
+}
+
+Vec3 TetFace::Centroid() const {
+
+    Vec3 centroid(0.0,0.0,0.0);
+
+    for (auto& node: nodes_) {
+        centroid += node->Position();
+    }
+
+    return centroid / 3.0;
 
 }
 
