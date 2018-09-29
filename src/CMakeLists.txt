@@ -18,6 +18,7 @@ add_library( ${library_name} SHARED
         TetMesh/CompressionTetMesh.cpp
         TetMesh/TetFace.cpp
         TetMesh/TetEdge.cpp
+        TetMesh/CollapseTetMesh.cpp
         Houdini/Registration.cpp
         Houdini/SOP_AnalyzeTetMesh.cpp
         Houdini/SOP_CleanupTetMesh.cpp
@@ -25,6 +26,7 @@ add_library( ${library_name} SHARED
         Houdini/SOP_CompressTetMesh.cpp
         Houdini/SOP_RefineTetrahedra.cpp
         Houdini/SOP_TetrahedralizeVDB.cpp
+        Houdini/SOP_CollapseTetrahedra.cpp
         )
 
 # Link against the Houdini libraries, and add required include directories and compile definitions.

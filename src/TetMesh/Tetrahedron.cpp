@@ -226,6 +226,25 @@ void Tetrahedron::ReplaceEdge(EdgeIndex index, TetEdgeRef edge) {
 
 }
 
+void Tetrahedron::ReplaceNode(TetNodeRef original, TetNodeRef replacement) {
+
+    // Find the index
+    int index = 0;
+    for (;index<4;index++)
+        if (nodes_[index] == original)
+            break;
+
+    // Foud the corresponsing node.
+    if (index<4) {
+
+        nodes_[index] = replacement;
+        original->DisconnectTetrahedron(this);
+        replacement->ConnectTetrahedron(this);
+
+    }
+
+}
+
 bool Tetrahedron::HasFace(TetFaceRef face) const {
 
     for (auto& f: faces_)
@@ -530,6 +549,23 @@ MinMaxReal Tetrahedron::GetMinMaxDihedralAngles() const {
 
 }
 
+TetEdgeRef Tetrahedron::ShortestEdge() const {
+
+    Real min_length = std::numeric_limits<Real>::max();
+    TetEdgeRef shortest_edge = nullptr;
+
+    for (auto& edge: edges_) {
+        auto length = edge->Length();
+        if (length < min_length) {
+            min_length = length;
+            shortest_edge = edge;
+        }
+    }
+
+    return shortest_edge;
+
+}
+
 /*
 Real Tetrahedron::CalculateAspectRatio() {
 
@@ -599,8 +635,23 @@ Real Tetrahedron::QualityMeasure() const {
     auto circumradius = Circumradius();
     auto circumsphere_area = circumradius * circumradius;
 
-    return 9.0 * ( insphere_area / circumsphere_area );
+    auto ratio_sphere =  9.0 * ( insphere_area / circumsphere_area );
 
+    auto min_altitude = GetMinAltitude();
+    auto max_edge_length = GetMinMaxEdgeLengths()[1];
+
+    auto ratio_length = min_altitude / max_edge_length;
+
+    return (ratio_sphere + ratio_length) / 2.0;
+
+}
+
+void Tetrahedron::CacheQualityMeasure() {
+    cached_quality_measure_ = QualityMeasure();
+}
+
+Real Tetrahedron::CachedQualityMeasure() const {
+    return cached_quality_measure_;
 }
 
 int Tetrahedron::CountInNodes() const {

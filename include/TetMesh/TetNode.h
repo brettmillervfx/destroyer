@@ -50,8 +50,8 @@ public:
     std::vector<TetEdgeRef> GetFirstEdgeRing() const;
 
     std::vector<TetrahedronRef> GetIncidentTets() const;
-
     std::vector<TetFaceRef> GetIncidentFaces() const;
+    std::vector<TetEdgeRef> GetIncidentEdges() const;
 
     // Returns the edge incident to this node that is connected to the passed node.
     // If this node is not connected to the passed node, return nullptr.

@@ -183,5 +183,23 @@ void TetEdge::DisconnectTetrahedron(TetrahedronRef tet) {
         incident_tets_.erase(found_tet);
 }
 
+void TetEdge::ReplaceNode(TetNodeRef original, TetNodeRef replacement) {
+
+    // Find the index
+    int index = 0;
+    for (;index<2;index++)
+        if (nodes_[index] == original)
+            break;
+
+    // Foud the corresponsing node.
+    if (index<2) {
+
+        nodes_[index] = replacement;
+        original->DisconnectEdge(this);
+        replacement->ConnectEdge(this);
+
+    }
+}
+
 }; // namespace destroyer
 

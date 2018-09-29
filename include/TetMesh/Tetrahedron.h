@@ -60,6 +60,8 @@ public:
 
     void ReplaceEdge(EdgeIndex index, TetEdgeRef edge);
 
+    void ReplaceNode(TetNodeRef original, TetNodeRef replacement);
+
     bool HasFace(TetFaceRef face) const;
     bool SharesFaceWith(TetrahedronRef other) const;
     bool HasEdge(TetEdgeRef edge) const;
@@ -109,12 +111,16 @@ public:
     MinMaxReal GetMinMaxEdgeLengths() const;
     MinMaxReal GetMinMaxDihedralAngles() const;
 
+    TetEdgeRef ShortestEdge() const;
+
     //Real CalculateAspectRatio();
 
     Real Volume() const;
     Real Inradius() const;
     Real Circumradius() const;
     Real QualityMeasure() const;
+    void CacheQualityMeasure();
+    Real CachedQualityMeasure() const;
 
     int CountInNodes() const;
     std::vector<TetNodeRef> InNodes() const;
@@ -147,6 +153,7 @@ private:
     std::array<TetFaceRef,4> faces_;
     std::bitset<6> split_edges_bitmask_;
     int boundary_split_case_;
+    Real cached_quality_measure_;
 
 };
 

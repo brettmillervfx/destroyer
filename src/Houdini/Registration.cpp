@@ -13,6 +13,7 @@
 #include "Houdini/SOP_AnalyzeTetMesh.h"
 #include "Houdini/SOP_CompressTetMesh.h"
 #include "Houdini/SOP_ClipTetMesh.h"
+#include "Houdini/SOP_CollapseTetrahedra.h"
 #include "Houdini/SOP_CleanupTetMesh.h"
 
 
@@ -90,6 +91,19 @@ newSopOperator(OP_OperatorTable *table)
 
     opClipTetMesh->setOpTabSubMenuPath("Weta");
     table->addOperator(opClipTetMesh);
+
+    OP_Operator *opCollapseTetrahedra;
+    opCollapseTetrahedra = new OP_Operator(
+            "CollapseTetrahedra",
+            "Collapse Tetrahedra",
+            destroyer::SOP_CollapseTetrahedra::myConstructor,
+            destroyer::SOP_CollapseTetrahedra::myTemplateList,
+            1,
+            1,
+            nullptr);
+
+    opCollapseTetrahedra->setOpTabSubMenuPath("Weta");
+    table->addOperator(opCollapseTetrahedra);
 
     OP_Operator *opCleanupTetMesh;
     opCleanupTetMesh = new OP_Operator(

@@ -128,6 +128,25 @@ void TetFace::ReplaceEdge(TetEdgeRef edge) {
     }
 }
 
+void TetFace::ReplaceNode(TetNodeRef original, TetNodeRef replacement) {
+
+    // Find the index
+    int index = 0;
+    for (;index<3;index++)
+        if (nodes_[index] == original)
+            break;
+
+    // Foud the corresponsing node.
+    if (index<3) {
+
+        nodes_[index] = replacement;
+        original->DisconnectFace(this);
+        replacement->ConnectFace(this);
+
+    }
+}
+
+
 void TetFace::ConnectTetrahedron(TetrahedronRef tet) {
 
     incident_tets_.push_back(tet);

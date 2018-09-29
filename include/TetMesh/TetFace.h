@@ -32,6 +32,7 @@ public:
     TetEdgeRef GetLeftEdge(TetNodeRef node) const;
 
     void ReplaceEdge(TetEdgeRef edge);
+    void ReplaceNode(TetNodeRef original, TetNodeRef replacement);
 
     void ConnectTetrahedron(TetrahedronRef tet);
     void DisconnectTetrahedron(TetrahedronRef tet);

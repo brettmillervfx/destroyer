@@ -101,6 +101,8 @@ public:
     void ConnectTetrahedron(TetrahedronRef tet);
     void DisconnectTetrahedron(TetrahedronRef tet);
 
+    void ReplaceNode(TetNodeRef original, TetNodeRef replacement);
+
 private:
     std::array<TetNodeRef,2> nodes_;
     std::vector<TetFaceRef> incident_faces_;

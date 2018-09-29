@@ -28,8 +28,8 @@ namespace destroyer {
 // Marseinne Twister used for random number generation.
 using RandomGenerator = typename std::mt19937;
 
-#define BOUNDARY_SEARCH_PATTERN_SIZE 7
-#define INTERIOR_SEARCH_PATTERN_SIZE 11
+#define BOUNDARY_SEARCH_PATTERN_SIZE 5
+#define INTERIOR_SEARCH_PATTERN_SIZE 7
 #define MAX_STRIKES 4
 
 

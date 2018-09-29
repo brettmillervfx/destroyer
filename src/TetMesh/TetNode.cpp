@@ -198,6 +198,12 @@ std::vector<TetFaceRef> TetNode::GetIncidentFaces() const {
 
 }
 
+std::vector<TetEdgeRef> TetNode::GetIncidentEdges() const {
+
+    return incident_edges_;
+
+}
+
 TetEdgeRef TetNode::GetEdgeTo(TetNodeRef node) const {
 
     for (auto& edge: incident_edges_) {

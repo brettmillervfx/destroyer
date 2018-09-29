@@ -9,7 +9,6 @@
 
 #include "TetMesh/DetailGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
-#include "TetMesh/VDBSampler.h"
 #include "TetMesh/RefinementTetMesh.h"
 #include "TetMesh/TetNode.h"
 #include "TetMesh/Tetrahedron.h"

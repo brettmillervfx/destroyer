@@ -47,7 +47,7 @@ void ClipTetMesh::ShiftNodesToBoundary(Real distance_threshold, Real quality_thr
 
     for (auto& node: nodes_) {
 
-        if ((node->SdfFlag() != ON_SDF) & node->IsBoundary()) {
+        if (node->SdfFlag() != ON_SDF) {
 
             // A node is a move candidate if it is connected to another node with the opposite IN/OUT flag.
             auto opposite = (node->SdfFlag() == IN_SDF) ? OUT_SDF : IN_SDF;
@@ -256,14 +256,13 @@ void ClipTetMesh::ProcessCase5Split(TetrahedronRef tet) {
     auto diagonal_2_0 = (mid_nodes[1]->Position() - in_nodes[0]->Position()).length2();
     auto diagonal_2_1 = (mid_nodes[2]->Position() - in_nodes[1]->Position()).length2();
 
-    /*
-    if ((diagonal_0_1 < diagonal_1_0) & (diagonal_1_2 < diagonal_2_1) & (diagonal_2_0 < diagonal_0_2)) {
-        std::cout << "special case 1" << std::endl;
+    //if ((diagonal_0_1 < diagonal_1_0) & (diagonal_1_2 < diagonal_2_1) & (diagonal_2_0 < diagonal_0_2)) {
+    //    std::cout << "special case 1" << std::endl;
 
-    } else if ((diagonal_0_1 > diagonal_1_0) & (diagonal_1_2 > diagonal_2_1) & (diagonal_2_0 > diagonal_0_2)) {
-        std::cout << "special case 2" << std::endl;
+    //} else if ((diagonal_0_1 > diagonal_1_0) & (diagonal_1_2 > diagonal_2_1) & (diagonal_2_0 > diagonal_0_2)) {
+    //    std::cout << "special case 2" << std::endl;
 
-    } else */
+    //} else
     if ((diagonal_0_1 < diagonal_1_0) & (diagonal_0_2 < diagonal_2_0)) {
 
         AddTetrahedron(in_nodes[0], in_nodes[1], in_nodes[2], mid_nodes[0]);
@@ -298,6 +297,7 @@ void ClipTetMesh::ProcessCase5Split(TetrahedronRef tet) {
         }
 
     }
+
 
     DeleteTetrahedron(tet);
 
