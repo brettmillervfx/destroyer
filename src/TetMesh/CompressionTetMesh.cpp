@@ -10,6 +10,8 @@
 #include "TetMesh/TetFace.h"
 #include "TetMesh/VDBSampler.h"
 
+#include "UT/UT_Interrupt.h"
+
 namespace destroyer {
 
 
@@ -17,12 +19,18 @@ void CompressionTetMesh::Compress(int sweeps, Real boundary_step, Real interior_
 
     GenerateSearchTemplates();
 
+    UT_AutoInterrupt progress("Compressing Tet Mesh");
+
     for (int i=0; i<sweeps; ++i) {
-        std::cout << "soft " << i << " of " << sweeps << std::endl;
+
+        if (progress.wasInterrupted(int((i*100)/sweeps)))
+            break;
+
         FindLowestQuality();
-        std::cout << "lowest quality " << lowest_quality_ << std::endl;
+        std::cout << "lowest tet quality " << lowest_quality_ << std::endl;
         CompressBoundaryNodes(boundary_step);
         OptimizeNodes(interior_step, quality_threshold);
+
     }
 
 }

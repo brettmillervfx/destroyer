@@ -330,8 +330,9 @@ Real TetFace::Semiperimeter() const {
 
 Real TetFace::QualityMeasure() const {
 
-    auto ratio = Inradius() / Circumradius();
-    return (2.0 * ratio);
+    auto ratio = 2.0 * (Inradius() / Circumradius());
+    auto edge_to_alt = MinNodeAltitude() / MaxEdgeLength();
+    return (ratio + edge_to_alt) / 2.0;
 
 }
 

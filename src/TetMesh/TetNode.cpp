@@ -334,13 +334,15 @@ Real TetNode::CalculateLocalQuality() const {
 
     // If a node is boundary, we also consider the quality of the incident boundary faces.
     if (IsBoundary()) {
+        auto min_face_quality = std::numeric_limits<Real>::max();
         for (auto &face: incident_faces_) {
             if (face->IsBoundary()) {
                 auto quality = face->QualityMeasure();
-                if (quality < min_quality)
-                    min_quality = quality;
+                if (quality < min_face_quality)
+                    min_face_quality = quality;
             }
         }
+        min_quality += min_face_quality;
     }
 
     return min_quality;
