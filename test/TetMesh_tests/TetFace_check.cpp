@@ -47,3 +47,33 @@ TEST(TetFaceCheck, test_area) {
     auto expected_area = (sqrt(3.0)/4.0) * a * a;
     EXPECT_LT(abs(face->Area()-expected_area),0.0001);
 }
+
+TEST(TetFaceCheck, test_radii) {
+    auto mesh = destroyer::TetMesh();
+
+    // Regular tetrahedron
+    auto node0 = new destroyer::TetNode(sqrt(8.0 / 9.0), 0.0, -1.0 / 3.0);
+    auto node1 = new destroyer::TetNode(-sqrt(2.0 / 9.0), sqrt(2.0 / 3.0), -1.0 / 3.0);
+    auto node2 = new destroyer::TetNode(-sqrt(2.0 / 9.0), -sqrt(2.0 / 3.0), -1.0 / 3.0);
+    auto node3 = new destroyer::TetNode(0.0, 0.0, 1.0);
+
+    mesh.AddTetrahedron(node0, node1, node2, node3);
+    mesh.ResetTetIterator();
+    auto tet = mesh.NextTet();
+    auto face = tet->GetFaceRef(0);
+    auto edge_length = (node0->Position() - node1->Position()).length();
+    auto s = face->Semiperimeter();
+
+    EXPECT_LT(abs(s-edge_length*1.5), 0.001);
+
+    auto circumradius = face->Circumradius();
+    EXPECT_LT(abs(circumradius-(edge_length/sqrt(3.0))), 0.001);
+
+    auto inradius = face->Inradius();
+    EXPECT_LT(abs(inradius-(edge_length*sqrt(3.0))/6.0), 0.001);
+
+    auto ratio = inradius/circumradius;
+    EXPECT_LT(abs(ratio-0.5), 0.001);
+
+}
+

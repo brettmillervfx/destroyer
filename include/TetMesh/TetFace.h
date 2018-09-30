@@ -55,6 +55,12 @@ public:
 
     Vec3 Centroid() const;
 
+    Real Inradius() const;
+    Real Circumradius() const;
+    Real Semiperimeter() const;
+
+    Real QualityMeasure() const;
+
 
 private:
     std::vector<TetrahedronRef> incident_tets_;

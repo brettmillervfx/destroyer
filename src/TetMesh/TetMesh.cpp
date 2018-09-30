@@ -204,6 +204,7 @@ void TetMesh::CullOutsideTets(int cull_depth) {
 
     auto iter = tets_.begin();
     while (iter != tets_.end()) {
+
         bool contains_solid = iter->second->ContainsSolid(sampler_, cull_depth);
         if (contains_solid) {
             iter++;

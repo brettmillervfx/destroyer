@@ -148,7 +148,6 @@ bool Tetrahedron::ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) 
     }
 
 
-
     return false;
 
 }

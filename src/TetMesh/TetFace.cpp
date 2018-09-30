@@ -297,4 +297,42 @@ Vec3 TetFace::Centroid() const {
 
 }
 
+Real TetFace::Inradius() const {
+
+    // Area = inradius / semiperimeter
+    return Area() / Semiperimeter();
+
+}
+
+Real TetFace::Circumradius() const {
+
+    // R = abc / 4rs
+    Real product = 1.0;
+    for ( auto& edge: edges_) {
+        product *= edge->Length();
+    }
+
+    return product / ( 4.0 * Inradius() * Semiperimeter() );
+
+}
+
+Real TetFace::Semiperimeter() const {
+
+    // Half the perimeter
+    Real perimeter = 0.0;
+    for ( auto& edge: edges_) {
+        perimeter += edge->Length();
+    }
+
+    return perimeter / 2.0;
+
+}
+
+Real TetFace::QualityMeasure() const {
+
+    auto ratio = Inradius() / Circumradius();
+    return (2.0 * ratio);
+
+}
+
 }; // namespace destroyer
