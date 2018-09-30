@@ -85,9 +85,9 @@ bool CollapseTetMesh::Cleanup(Real quality_threshold, int max_iter) {
         }
 
         iter--;
-    }
 
-    DeleteUnusedTopology();
+        DeleteUnusedTopology();
+    }
 
     return done;
 

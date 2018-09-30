@@ -74,7 +74,7 @@ void CompressionTetMesh::CompressBoundaryNodes(Real compression_amount) {
             auto sdf = sampler_->Sample(pos[0], pos[1], pos[2]);
             auto normal = node->Normal();
 
-            auto new_pos = pos - sdf * normal * compression_amount;
+            auto new_pos = pos + sdf * normal * compression_amount;
 
             node->SetPosition(new_pos);
 
