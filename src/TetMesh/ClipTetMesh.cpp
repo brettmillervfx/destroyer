@@ -63,6 +63,8 @@ void ClipTetMesh::ShiftNodesToBoundary(Real distance_threshold, Real quality_thr
                     // If the quality has degraded substantially, move it back.
                     if (node->CalculateLocalQuality() < quality_threshold)
                         node->SetPosition(current_pos);
+                    else
+                        node->SetSDFFlag(ON_SDF);
                 }
             }
         }
@@ -73,7 +75,7 @@ void ClipTetMesh::ShiftNodesToBoundary(Real distance_threshold, Real quality_thr
 
 void ClipTetMesh::SplitBoundaryTets(Real distance_threshold) {
 
-    FlagInteriorNodes(distance_threshold);
+    //FlagInteriorNodes(distance_threshold);
 
     std::vector<TetrahedronRef> delete_list;
     std::vector<TetrahedronRef> split_list;
@@ -86,9 +88,14 @@ void ClipTetMesh::SplitBoundaryTets(Real distance_threshold) {
 
         if (in_count == 0) {
             delete_list.push_back(tet.first);
-        } else if (in_count<4) {
-            PrepSplitBoundaryTet(tet.first, in_count, on_count, out_count);
-            split_list.push_back(tet.first);
+        } else {
+
+            if (in_count < 4) {
+                if (out_count > 0) {
+                    PrepSplitBoundaryTet(tet.first, in_count, on_count, out_count);
+                    split_list.push_back(tet.first);
+                }
+            }
         }
 
     }
