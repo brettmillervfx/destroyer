@@ -336,4 +336,20 @@ Real TetFace::QualityMeasure() const {
 
 }
 
+void TetFace::CorrectWinding() {
+
+    auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
+    auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
+
+    auto normal = cross(edge0, edge1);
+    auto out_vector = Centroid() - incident_tets_[0]->Centroid();
+
+    if (normal.dot(out_vector) < 0.0) {
+        auto temp = nodes_[1];
+        nodes_[1] = nodes_[2];
+        nodes_[2] = temp;
+    }
+
+}
+
 }; // namespace destroyer

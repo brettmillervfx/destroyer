@@ -52,15 +52,20 @@ public:
     // Culldepth determines the recursive face subdivision used when testing marginal cases.
     void CullOutsideTets(int cullDepth=2);
 
-    // Iterate the nodes. To use, reset the iterator, then use NextConnectedNode to get a pointer
+    // Iterate the nodes. To use, reset the iterator, then use NextNode to get a pointer
     // to the next TetNode. A nullptr is returned when the list is exhausted.
     void ResetNodeIterator();
     TetNodeRef NextNode();
 
-    // Iterate the tets. To use, reset the iterator, then use NextConnectedTet to get a pointer
+    // Iterate the tets. To use, reset the iterator, then use NextTet to get a pointer
     // to the next Tetrahedron. A nullptr is returned when the list is exhausted.
     void ResetTetIterator();
     TetrahedronRef NextTet();
+
+    // Iterate the faces. To use, reset the iterator, then use NextFace to get a pointer
+    // to the next TetFace. A nullptr is returned when the list is exhausted.
+    void ResetFaceIterator();
+    TetFaceRef NextFace();
 
 
 protected:
@@ -71,6 +76,8 @@ protected:
     std::map<TetrahedronRef,TetrahedronPtr>::iterator tet_iter_;
 
     std::map<TetFaceRef,TetFacePtr> faces_;
+    std::map<TetFaceRef,TetFacePtr>::iterator face_iter_;
+
     std::map<TetEdgeRef,TetEdgePtr> edges_;
 
     VDBSamplerPtr sampler_;

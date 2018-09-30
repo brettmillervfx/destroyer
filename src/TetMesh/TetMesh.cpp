@@ -254,5 +254,23 @@ TetrahedronRef TetMesh::NextTet() {
 
 }
 
+void TetMesh::ResetFaceIterator() {
+
+    face_iter_ = faces_.begin();
+
+}
+
+TetFaceRef TetMesh::NextFace() {
+
+    if (face_iter_ == faces_.end())
+        return nullptr;
+    else {
+        auto ret = face_iter_->first;
+        ++face_iter_;
+        return ret;
+    }
+
+}
+
 
 }; // namespace destroyer

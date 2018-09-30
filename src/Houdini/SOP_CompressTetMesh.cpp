@@ -93,7 +93,7 @@ SOP_CompressTetMesh::cookMySop(OP_Context &context)
 
     // Condition TetMesh into Houdini detail geometry.
     TetMeshToHoudiniDetail conditioner(tet_mesh, gdp);
-    conditioner.convert();
+    conditioner.Convert();
 
     // Tear down TetMesh.
     tet_mesh->TearDown();

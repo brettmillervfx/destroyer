@@ -15,6 +15,7 @@
 #include "Houdini/SOP_ClipTetMesh.h"
 #include "Houdini/SOP_CollapseTetrahedra.h"
 #include "Houdini/SOP_CleanupTetMesh.h"
+#include "Houdini/SOP_TetMeshToCutter.h"
 
 
 
@@ -117,6 +118,19 @@ newSopOperator(OP_OperatorTable *table)
 
     opCleanupTetMesh->setOpTabSubMenuPath("Weta");
     table->addOperator(opCleanupTetMesh);
+
+    OP_Operator *opTetMeshToCutter;
+    opTetMeshToCutter = new OP_Operator(
+            "CTetMeshToCutter",
+            "Tet Mesh To Cutter",
+            destroyer::SOP_TetMeshToCutter::myConstructor,
+            destroyer::SOP_TetMeshToCutter::myTemplateList,
+            1,
+            1,
+            nullptr);
+
+    opTetMeshToCutter->setOpTabSubMenuPath("Weta");
+    table->addOperator(opTetMeshToCutter);
 
     std::cout << "loaded destroyer" << std::endl;
 

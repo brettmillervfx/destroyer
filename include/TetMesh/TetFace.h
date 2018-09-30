@@ -19,6 +19,8 @@ public:
     // Return true if the face is on the TetMesh boundary.
     bool IsBoundary() const;
 
+    inline TetNodeRef GetNodeRef(int node_index) const { return nodes_[node_index]; };
+
     TetrahedronRef GetFirstTet() const;
     TetrahedronRef GetOtherTet(TetrahedronRef tet) const;
 
@@ -60,6 +62,9 @@ public:
     Real Semiperimeter() const;
 
     Real QualityMeasure() const;
+
+    void CorrectWinding();
+
 
 
 private:

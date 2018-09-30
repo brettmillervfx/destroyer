@@ -28,10 +28,14 @@ public:
     ~TetMeshToHoudiniDetail() = default;
 
     // Converts the contained TetMesh into Houdini detail and writes into the contained gdp.
-    void convert();
+    void Convert();
+
+    void ConvertBoundary();
+
+    void ConvertBoundaryFaces();
 
 private:
-    void ConvertPoints();
+    void ConvertPoints(bool boundary_only=false);
     void ConvertTetrahedra();
 
 private:

@@ -27,6 +27,7 @@ add_library( ${library_name} SHARED
         Houdini/SOP_RefineTetrahedra.cpp
         Houdini/SOP_TetrahedralizeVDB.cpp
         Houdini/SOP_CollapseTetrahedra.cpp
+        Houdini/SOP_TetMeshToCutter.cpp
         )
 
 # Link against the Houdini libraries, and add required include directories and compile definitions.

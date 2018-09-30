@@ -40,8 +40,6 @@ public:
 
     inline Index Id() const { return id_; };
 
-    //inline Real Quality() const { return quality_; };
-
     // Returns true if the tetrahedron contains SDF interior.
     bool ContainsSolid(VDBSamplerPtr sdf_sampler, int recursion_depth) const;
 
