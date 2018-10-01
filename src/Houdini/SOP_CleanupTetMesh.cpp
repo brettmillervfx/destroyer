@@ -6,6 +6,7 @@
 
 #include <OP/OP_AutoLockInputs.h>
 #include <UT/UT_String.h>
+#include <PRM/PRM_Range.h>
 
 #include "TetMesh/DetailGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
@@ -19,6 +20,7 @@ namespace destroyer {
 
 static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
 static PRM_Default max_iter_prm_default(3);
+static PRM_Range max_iter_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 10);
 
 static PRM_Name lone_tets_prm_name("refineLoneTets", "Refine Lone Tets");
 static PRM_Default lone_tets_prm_default(true);
@@ -38,12 +40,18 @@ static PRM_Default nonmanifold_nodes_prm_default(true);
 
 PRM_Template
 SOP_CleanupTetMesh::myTemplateList[] = {
-        PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
-        PRM_Template(PRM_TOGGLE, 1, &lone_tets_prm_name, &lone_tets_prm_default),
-        PRM_Template(PRM_TOGGLE, 1, &weak_ext_tets_prm_name, &weak_ext_tets_prm_default),
-        PRM_Template(PRM_TOGGLE, 1, &weak_int_edges_prm_name, &weak_int_edges_prm_default),
-        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_edges_prm_name, &nonmanifold_edges_prm_default),
-        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_nodes_prm_name, &nonmanifold_nodes_prm_default),
+        PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default, 0, &max_iter_prm_range, 0, 0, 1,
+                     "As mesh geometry is fixed or eliminated, new problems may be created. Iteration usually solves these problems. A warning will be issued if the cleanup is incomplete and requires more iterations." ),
+        PRM_Template(PRM_TOGGLE, 1, &lone_tets_prm_name, &lone_tets_prm_default, 0, 0, 0, 0, 1,
+                     "Disconnected tets are subdivided 8:1 to strengthen the structure for FEM solves."),
+        PRM_Template(PRM_TOGGLE, 1, &weak_ext_tets_prm_name, &weak_ext_tets_prm_default, 0, 0, 0, 0, 1,
+                     "Tets with all four nodes exposed to boundary are eliminated."),
+        PRM_Template(PRM_TOGGLE, 1, &weak_int_edges_prm_name, &weak_int_edges_prm_default, 0, 0, 0, 0, 1,
+                     "Interior edges with both nodes on the boundary are split to strengthen the tet structure."),
+        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_edges_prm_name, &nonmanifold_edges_prm_default, 0, 0, 0, 0, 1,
+                     "Boundary edges with more than 2 incident boundary faces are eliminated."),
+        PRM_Template(PRM_TOGGLE, 1, &nonmanifold_nodes_prm_name, &nonmanifold_nodes_prm_default, 0, 0, 0, 0, 1,
+                     "Boundary nodes with more than one boundary edge ring are eliminated."),
         PRM_Template(),
 };
 

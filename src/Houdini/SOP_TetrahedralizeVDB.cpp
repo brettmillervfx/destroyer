@@ -5,6 +5,7 @@
 #include "Houdini/SOP_TetrahedralizeVDB.h"
 
 #include <OP/OP_AutoLockInputs.h>
+#include <PRM/PRM_Range.h>
 
 #include "TetMesh/BCCLatticeGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
@@ -18,16 +19,20 @@ namespace destroyer {
 
 
 static PRM_Name edge_length_prm_name("edgeLength", "Base Edge Length");
-static PRM_Default edge_length_prm_default(1.0f);
+static PRM_Default edge_length_prm_default(1.0);
+static PRM_Range edge_length_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 10.0);
 
 static PRM_Name cull_depth_prm_name("cullDepth", "Cull Depth");
 static PRM_Default cull_depth_prm_default(2);
+static PRM_Range cull_depth_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 4);
 
 PRM_Template
-        SOP_TetrahedralizeVDB::myTemplateList[] = {
-        PRM_Template(PRM_FLT_J, 1, &edge_length_prm_name, &edge_length_prm_default),
-        PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default),
-        PRM_Template(),
+SOP_TetrahedralizeVDB::myTemplateList[] = {
+    PRM_Template(PRM_FLT_J, 1, &edge_length_prm_name, &edge_length_prm_default, 0, &edge_length_prm_range, 0, 0, 1,
+            "Target edge length for base tetrahedra."),
+    PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default, 0, &cull_depth_prm_range, 0, 0, 1,
+            "The level set may pass through a tet even if all nodes are outside. Suspect tets may be recursively subdivided for purposes of testing. Higher values will be slower but are useful for detecting bad culls in high curvature areas."),
+    PRM_Template(),
 };
 
 

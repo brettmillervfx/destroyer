@@ -5,6 +5,7 @@
 #include "Houdini/SOP_ClipTetMesh.h"
 
 #include <OP/OP_AutoLockInputs.h>
+#include <PRM/PRM_Range.h>
 
 #include "TetMesh/DetailGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
@@ -17,16 +18,20 @@
 namespace destroyer {
 
 static PRM_Name quality_threshold_prm_name("qualityThreshold", "Quality Threshold");
-static PRM_Default quality_threshold_prm_default(0.5);
+static PRM_Default quality_threshold_prm_default(0.1);
+static PRM_Range quality_threshold_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_PRM, 1);
 
 static PRM_Name distance_threshold_prm_name("distanceThreshold", "Distance Threshold");
 static PRM_Default distance_threshold_prm_default(0.001);
+static PRM_Range distance_threshold_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 1);
 
 PRM_Template
-        SOP_ClipTetMesh::myTemplateList[] = {
-        PRM_Template(PRM_FLT_J, 1, &quality_threshold_prm_name, &quality_threshold_prm_default),
-        PRM_Template(PRM_FLT_J, 1, &distance_threshold_prm_name, &distance_threshold_prm_default),
-        PRM_Template(),
+SOP_ClipTetMesh::myTemplateList[] = {
+    PRM_Template(PRM_FLT_J, 1, &quality_threshold_prm_name, &quality_threshold_prm_default, 0, &quality_threshold_prm_range, 0, 0, 1,
+            "A node will not be projected onto the level set if it results in a tet with quality lower than this threshold."),
+    PRM_Template(PRM_FLT_J, 1, &distance_threshold_prm_name, &distance_threshold_prm_default, 0, &distance_threshold_prm_range, 0, 0, 1,
+            "Nodes that are less than this distance from the level set are considered to be on the level set."),
+    PRM_Template(),
 };
 
 

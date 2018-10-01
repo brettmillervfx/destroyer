@@ -17,8 +17,8 @@ namespace destroyer {
 
 
 PRM_Template
-        SOP_AnalyzeTetMesh::myTemplateList[] = {
-        PRM_Template(),
+SOP_AnalyzeTetMesh::myTemplateList[] = {
+    PRM_Template(),
 };
 
 
@@ -67,7 +67,7 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
     auto nonmanifold_handle = GA_RWHandleI(gdp->addIntTuple(GA_ATTRIB_POINT, "nonmanifold", 1));
     auto normal_handle = GA_RWHandleV3(gdp->addFloatTuple(GA_ATTRIB_POINT, "normal", 3));
 
-    // Calculate attributes and assign values.
+    // Calculate prim attributes and assign values.
 
     tet_mesh->ResetTetIterator();
     auto tet = tet_mesh->NextTet();
@@ -87,6 +87,7 @@ SOP_AnalyzeTetMesh::cookMySop(OP_Context &context)
         tet = tet_mesh->NextTet();
     }
 
+    // Calculate node attributes and assign values.
 
     tet_mesh->ResetNodeIterator();
     auto node = tet_mesh->NextNode();

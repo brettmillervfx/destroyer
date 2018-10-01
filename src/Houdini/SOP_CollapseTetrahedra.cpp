@@ -6,6 +6,7 @@
 
 #include <OP/OP_AutoLockInputs.h>
 #include <UT/UT_String.h>
+#include <PRM/PRM_Range.h>
 
 #include "TetMesh/DetailGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
@@ -19,15 +20,19 @@ namespace destroyer {
 
 static PRM_Name max_iter_prm_name("maxIter", "Max Iterations");
 static PRM_Default max_iter_prm_default(3);
+static PRM_Range max_iter_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 6);
 
 static PRM_Name quality_threshold_prm_name("qualityThreshold", "Quality Threshold");
-static PRM_Default quality_threshold_prm_default(0.5);
+static PRM_Default quality_threshold_prm_default(0.05);
+static PRM_Range quality_threshold_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_PRM, 1);
 
 PRM_Template
-        SOP_CollapseTetrahedra::myTemplateList[] = {
-        PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default),
-        PRM_Template(PRM_FLT_J, 1, &quality_threshold_prm_name, &quality_threshold_prm_default),
-        PRM_Template(),
+SOP_CollapseTetrahedra::myTemplateList[] = {
+    PRM_Template(PRM_INT_J, 1, &max_iter_prm_name, &max_iter_prm_default, 0, &max_iter_prm_range, 0, 0, 1,
+            "Collapsing tets may produce new bad tets. The process will repeat until all bad tets are removed or until max interations is reached."),
+    PRM_Template(PRM_FLT_J, 1, &quality_threshold_prm_name, &quality_threshold_prm_default, 0, &quality_threshold_prm_range, 0, 0, 1,
+            "All tets with quality lower than the threshold will be collapsed along the shortest edge."),
+    PRM_Template(),
 };
 
 

@@ -6,6 +6,7 @@
 
 #include <OP/OP_AutoLockInputs.h>
 #include <UT/UT_String.h>
+#include <PRM/PRM_Range.h>
 
 #include "TetMesh/DetailGenerator.h"
 #include "TetMesh/TetMeshToHoudiniDetail.h"
@@ -23,12 +24,15 @@ static PRM_Name subdiv_group_prm_name("subdivGroup", "Subdiv Group");
 
 static PRM_Name cull_depth_prm_name("cullDepth", "Cull Depth");
 static PRM_Default cull_depth_prm_default(2);
+static PRM_Range cull_depth_prm_range(PRM_RANGE_PRM, 0, PRM_RANGE_FREE, 4);
 
 PRM_Template
-        SOP_RefineTetrahedra::myTemplateList[] = {
-        PRM_Template(PRM_STRING, 1, &subdiv_group_prm_name, 0, &SOP_Node::primGroupMenu),
-        PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default),
-        PRM_Template(),
+SOP_RefineTetrahedra::myTemplateList[] = {
+    PRM_Template(PRM_STRING, 1, &subdiv_group_prm_name, 0, &SOP_Node::primGroupMenu, 0, 0, 0, 1,
+            "Primitive group containing tets to be subdivided."),
+    PRM_Template(PRM_INT_J, 1, &cull_depth_prm_name, &cull_depth_prm_default, 0, &cull_depth_prm_range, 0, 0, 1,
+            "The level set may pass through a tet even if all nodes are outside. Suspect tets may be recursively subdivided for purposes of testing. Higher values will be slower but are useful for detecting bad culls in high curvature areas."),
+    PRM_Template(),
 };
 
 
