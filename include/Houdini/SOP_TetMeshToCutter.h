@@ -9,6 +9,23 @@
 
 namespace destroyer {
 
+/*
+
+ SOP_TetMeshToCutter
+
+ The boundary of a TetMesh is converted to a polymesh, suitable for boolean operations.
+
+ Inputs:
+    Input0:
+        Tetrahedron primitives. (All other primitives are discarded.)
+
+    Parameters:
+
+    Output:
+        A triangulated polymesh comprising the closed boundary surfaces of the Input0 TetMesh.
+
+*/
+
 class SOP_TetMeshToCutter : public SOP_Node
 {
 public:

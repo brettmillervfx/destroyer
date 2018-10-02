@@ -34,7 +34,6 @@ namespace destroyer {
         this edge length will be maintained to final construction: Adaptive subdivision and mesh compression
         will almost certainly produce a broad range of lengths. Nonetheless, the parameter provides a reasonably
         good target.
-        EdgeLength is expected to be greater than zero.
 
  Output:
         The tetrahedral mesh.

@@ -15,7 +15,8 @@ namespace destroyer {
 
  Conforms tetrahedra mesh to Level Set boundary.
 
- Uses the method described in "Tetrahedral mesh generation based on space indicator functions", Friess, et al.
+ Uses the method described in "Tetrahedral mesh generation based on space indicator functions", Friess, et al. Nodes
+ that are near the level set are projected onto it to prevent slivers. The tet mesh is then clipped to the level set.
 
  Inputs:
     Input0:
@@ -26,7 +27,11 @@ namespace destroyer {
 
  Parameters:
     Quality Threshold
+        A node will not be projected onto the level set if it results in a tet with quality lower than this threshold.
 
+    Distance Threshold
+        Nodes that are less than this distance from the level set are considered to be on the level set and will not
+        be projected.
 
  Output:
         The tetrahedral mesh with tetrahedra corrected and clipped.

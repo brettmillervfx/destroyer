@@ -22,6 +22,7 @@ namespace destroyer {
 
  Output:
         The tetrahedral mesh with primitive attributes attached:
+
             longest_edge
             shortest_edge
                 min/max edge length of the tetrahedron
@@ -32,9 +33,15 @@ namespace destroyer {
             min_dihedral_angle
             max_dihedral_angle
                 min/max angles between tetrahedral faces.
+
         And with point attributes:
+
             boundary
                 1 if the point is on the tetrahedral mesh boundary.
+            nonmanifold
+                1 if the node describes a nonmanifold topology.
+            normal
+                the surface normal at boundary nodes.
 
 */
 
