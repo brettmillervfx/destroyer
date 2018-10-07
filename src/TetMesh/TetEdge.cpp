@@ -2,7 +2,6 @@
 // Created by Brett Miller on 8/15/18.
 //
 
-#include <iostream>
 
 #include "TetMesh/TetEdge.h"
 #include "TetMesh/TetFace.h"
@@ -12,6 +11,7 @@ namespace destroyer {
 
 TetEdge::TetEdge(TetNodeRef n0, TetNodeRef n1) {
 
+    // Manage node connectivity.
     nodes_[0] = n0;
     n0->ConnectEdge(this);
     nodes_[1] = n1;

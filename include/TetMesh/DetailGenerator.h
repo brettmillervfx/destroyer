@@ -11,14 +11,14 @@
 
 namespace destroyer {
 
-
-/*
+/*************************************************************************************
 
  DetailGenerator class
 
  Fills an empty TetMesh with the tetrahedral mesh found in a Houdini detail.
 
-*/
+*************************************************************************************/
+
 
 class DetailGenerator
 {

@@ -12,25 +12,26 @@
 
 namespace destroyer {
 
-
-/*
+/*************************************************************************************
 
  VDBSampler class
 
- Implements an interface to a Houdini VDB grid. If the sampler is constructed with min and max values, any sampled
+ Implements an interface to a Houdini VDB grid. (Specifically useful for SDF level set implementation.
+ If the sampler is constructed with min and max values, any sampled
  value will be normalized and clamped to the described interval.
 
-*/
+*************************************************************************************/
 
 
 class VDBSampler
 {
 public:
-    VDBSampler() {};
-    VDBSampler(VDBGridPtr vdb);
-    VDBSampler(VDBGridPtr vdb, Real min, Real max);
-    VDBSampler(const GU_Detail *detail);
-    VDBSampler(const GU_Detail *detail, Real min, Real max);
+
+    // Constructor may be passed a scalar vdb grid representing the level set or a Houdii Detail containing
+    // a vdb primitive representing the level set.
+    explicit VDBSampler(VDBGridPtr vdb);
+    explicit VDBSampler(const GU_Detail *detail);
+
     ~VDBSampler() = default;
 
     // Test if we're holding a valid SDF.
@@ -39,7 +40,7 @@ public:
     // Get bounds of the contained SDF.
     UT_BoundingBox GetBBox() const;
 
-    // Sample the VDB and apply the fit function if required.
+    // Sample the VDB.
     Real Sample(Real x, Real y, Real z) const;
     Vec3 SampleGradient(Real x, Real y, Real z) const;
 
@@ -52,9 +53,7 @@ private:
 private:
     VDBGridPtr vdb_;
     Real background_;
-    bool apply_fit_;
-    Real fit_min_;
-    Real fit_max_;
+
 };
 
 }; // namespace destroyer

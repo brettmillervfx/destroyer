@@ -85,11 +85,11 @@ SOP_CleanupTetMesh::cookMySop(OP_Context &context)
     auto now = context.getTime();
 
     auto max_iter = evalInt("maxIter", 0, now);
-    auto lone_tets = evalInt("refineLoneTets", 0, now);
-    auto weak_tets = evalInt("removeWeakExteriorTets", 0, now);
-    auto weak_edges = evalInt("splitWeakInteriorEdges", 0, now);
-    auto nonmanifold_edges = evalInt("refineNonmanifoldEdges", 0, now);
-    auto nonmanifold_nodes = evalInt("refineNonmanifoldNodes", 0, now);
+    auto lone_tets = (evalInt("refineLoneTets", 0, now) == 1);
+    auto weak_tets = (evalInt("removeWeakExteriorTets", 0, now) == 1);
+    auto weak_edges = (evalInt("splitWeakInteriorEdges", 0, now) == 1);
+    auto nonmanifold_edges = (evalInt("refineNonmanifoldEdges", 0, now) == 1);
+    auto nonmanifold_nodes = (evalInt("refineNonmanifoldNodes", 0, now) == 1);
 
     // Instantiate an empty TetMesh.
     auto tet_mesh = std::make_shared<RefinementTetMesh>();

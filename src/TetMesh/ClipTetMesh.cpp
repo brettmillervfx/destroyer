@@ -22,6 +22,9 @@ void ClipTetMesh::Clip(Real quality_threshold, Real distance_threshold) {
 
 void ClipTetMesh::FlagInteriorNodes(Real distance_threshold) {
 
+    // Set the SDFFlag for all nodes. Nodes that closer to the level set than
+    // distance_threshold are considered "ON" the level set.
+
     for (auto& node: nodes_) {
 
         auto pos = node->Position();
@@ -74,8 +77,6 @@ void ClipTetMesh::ShiftNodesToBoundary(Real distance_threshold, Real quality_thr
 }
 
 void ClipTetMesh::SplitBoundaryTets(Real distance_threshold) {
-
-    //FlagInteriorNodes(distance_threshold);
 
     std::vector<TetrahedronRef> delete_list;
     std::vector<TetrahedronRef> split_list;
@@ -263,13 +264,6 @@ void ClipTetMesh::ProcessCase5Split(TetrahedronRef tet) {
     auto diagonal_2_0 = (mid_nodes[1]->Position() - in_nodes[0]->Position()).length2();
     auto diagonal_2_1 = (mid_nodes[2]->Position() - in_nodes[1]->Position()).length2();
 
-    //if ((diagonal_0_1 < diagonal_1_0) & (diagonal_1_2 < diagonal_2_1) & (diagonal_2_0 < diagonal_0_2)) {
-    //    std::cout << "special case 1" << std::endl;
-
-    //} else if ((diagonal_0_1 > diagonal_1_0) & (diagonal_1_2 > diagonal_2_1) & (diagonal_2_0 > diagonal_0_2)) {
-    //    std::cout << "special case 2" << std::endl;
-
-    //} else
     if ((diagonal_0_1 < diagonal_1_0) & (diagonal_0_2 < diagonal_2_0)) {
 
         AddTetrahedron(in_nodes[0], in_nodes[1], in_nodes[2], mid_nodes[0]);

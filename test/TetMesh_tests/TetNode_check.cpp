@@ -61,13 +61,6 @@ TEST(TetNodeTest, test_set_id) {
     EXPECT_EQ( node.Id(), 3 );
 }
 
-TEST(TetNodeTest, test_set_depth) {
-    destroyer::Vec3 inVec(4.0,3.0,2.0);
-    destroyer::TetNode node(inVec);
-    node.SetDepth(3);
-    EXPECT_EQ( node.Depth(), 3 );
-}
-
 TEST(TetNodeTest, test_tet_connections) {
 
     auto mesh = new destroyer::TetMesh();
@@ -78,7 +71,7 @@ TEST(TetNodeTest, test_tet_connections) {
     auto nodeB = mesh->AddNode( 1.0, 2.0, 3.0 );
     auto nodeC = mesh->AddNode( 1.0, 2.0, 3.0 );
 
-    auto tet = mesh->AddTetrahedron(nodeA, nodeB, nodeC, node); //new destroyer::Tetrahedron(nodeA, nodeB, nodeC, node);
+    auto tet = mesh->AddTetrahedron(nodeA, nodeB, nodeC, node);
     EXPECT_TRUE(node->IsConnected());
 
     node->DisconnectTetrahedron(tet);

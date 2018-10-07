@@ -12,11 +12,11 @@
 
 namespace destroyer {
 
+
 TetNode::TetNode(Real x, Real y, Real z, Index id) {
 
     position_ = Vec3(x,y,z);
     id_ = id;
-    depth_ = 0;
     quality_ = 0.0;
 
 }
@@ -25,68 +25,7 @@ TetNode::TetNode(Vec3 position, Index id) {
 
     position_ = position;
     id_ = id;
-    depth_ = 0;
     quality_ = 0.0;
-
-}
-
-Vec3 TetNode::Position() const {
-
-    return position_;
-
-}
-
-void TetNode::SetPosition(Vec3 position) {
-
-    position_ = position;
-
-}
-
-Index TetNode::Id() const {
-
-    return id_;
-
-}
-
-void TetNode::SetId(Index id) {
-
-    id_ = id;
-
-}
-
-uint TetNode::Depth() const {
-
-    return depth_;
-
-}
-
-void TetNode::SetDepth(uint depth) {
-
-    depth_ = depth;
-
-}
-
-Real TetNode::Sdf() const {
-
-    return sdf_;
-
-}
-
-void TetNode::SetSdf(Real sdf) {
-
-    sdf_ = sdf;
-
-}
-
-void TetNode::SetSDFFlag(SDFFlag flag) {
-
-    sdf_flag_ = flag;
-
-}
-
-SDFFlag TetNode::SdfFlag() const {
-
-    return sdf_flag_;
 
 }
 
@@ -183,24 +122,6 @@ std::vector<TetEdgeRef> TetNode::GetFirstEdgeRing() const {
     } while (current_node!=head_node);
 
     return first_ring_edges;
-
-}
-
-std::vector<TetrahedronRef> TetNode::GetIncidentTets() const {
-
-    return incident_tets_;
-
-}
-
-std::vector<TetFaceRef> TetNode::GetIncidentFaces() const {
-
-    return incident_faces_;
-
-}
-
-std::vector<TetEdgeRef> TetNode::GetIncidentEdges() const {
-
-    return incident_edges_;
 
 }
 
@@ -312,6 +233,7 @@ Real TetNode::GetMinAltitude() const {
 
 Real TetNode::GetMinEdgeLength() const {
 
+    // Find the shortest connected edge and return the length.
     auto min_length = std::numeric_limits<Real>::max();
     for (auto& edge: incident_edges_) {
         auto length = edge->Length();
@@ -336,11 +258,6 @@ Real TetNode::CalculateLocalQuality() const {
 
 }
 
-void TetNode::CacheLocalQuality() {
-
-    quality_ = CalculateLocalQuality();
-
-}
 
 
 }; // namespace destroyer

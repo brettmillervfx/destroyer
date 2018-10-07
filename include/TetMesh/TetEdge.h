@@ -12,7 +12,7 @@
 
 namespace destroyer {
 
-/*
+/*************************************************************************************
 
  TetEdge class
 
@@ -22,13 +22,15 @@ namespace destroyer {
  A TetEdge connects 2 adjacent nodes int the TetMesh. It will contribute to the definition of TetFaces and Tetrahedra
  by definition and maintains connectivity with TetFaces and Tetrahedrons.
 
- < How are TetEdges used in the code? >
+ TetEdges may be used (usually internally to the implementation) to disconver how tetrahedrons are connected to one
+ another, how faces relate, etc.
 
  A TetEdge may also maintain a "Midpoint": this is a node that bisects the edge but is otherwise unconnected to
  the TetMesh structure. This is useful for defining what edges we would like to split during tet refinement, without
  immediately requiring Tetrahedron subdivision.
 
-*/
+*************************************************************************************/
+
 
 class TetEdge {
 public:
@@ -101,6 +103,7 @@ public:
     void ConnectTetrahedron(TetrahedronRef tet);
     void DisconnectTetrahedron(TetrahedronRef tet);
 
+    // Replace one of the nodes with a new node, if the original is present.
     void ReplaceNode(TetNodeRef original, TetNodeRef replacement);
 
 private:

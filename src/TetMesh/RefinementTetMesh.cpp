@@ -31,11 +31,11 @@ void RefinementTetMesh::RefineIdGroup(const std::set<Index> id_group) {
 
 }
 
-bool RefinementTetMesh::Cleanup( int lone_tets,
-                                 int weak_tets,
-                                 int weak_edges,
-                                 int nonmanifold_edges,
-                                 int nonmanifold_nodes,
+bool RefinementTetMesh::Cleanup( bool lone_tets,
+                                 bool weak_tets,
+                                 bool weak_edges,
+                                 bool nonmanifold_edges,
+                                 bool nonmanifold_nodes,
                                  int max_iterations) {
 
     auto iter = max_iterations;
@@ -44,27 +44,27 @@ bool RefinementTetMesh::Cleanup( int lone_tets,
 
         done = true;
 
-        if (lone_tets==1) {
+        if (lone_tets) {
             auto lone_count = RefineLoneTets();
             done &= (lone_count==0);
         }
 
-        if (weak_tets==1) {
+        if (weak_tets) {
             auto weak_ext_count = RemoveWeakExteriorTets();
             done &= (weak_ext_count==0);
         }
 
-        if (weak_edges==1) {
+        if (weak_edges) {
             auto weak_int_count = SplitWeakInteriorEdges();
             done &= (weak_int_count==0);
         }
 
-        if (nonmanifold_edges==1) {
+        if (nonmanifold_edges) {
             auto nm_edge_count = RefineNonManifoldEdges();
             done &= (nm_edge_count==0);
         }
 
-        if (nonmanifold_nodes==1) {
+        if (nonmanifold_nodes) {
             auto nm_node_count = RefineNonManifoldNodes();
             done &= (nm_node_count==0);
         }

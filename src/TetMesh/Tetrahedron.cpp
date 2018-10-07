@@ -13,6 +13,7 @@
 namespace destroyer {
 
 // Edge and Face identification tables
+///////////////////////////////////////////////
 
 // Given 2 nodes, this table provides the connecting edge.
 constexpr EdgeIndex NODE_TABLE[4][4] =
@@ -41,32 +42,18 @@ constexpr std::array<std::array<FaceIndex,2>,6> INCIDENT_FACE_TABLE {{
     {{FACE_0_2_3, FACE_1_2_3}},
     {{FACE_0_3_1, FACE_1_2_3}} }};
 
-// Given a node, this table provides the three connected edges.
-constexpr std::array<std::array<EdgeIndex,3>,4> ADJACENT_EDGES_TABLE {{
-    {{ EDGE_0_1, EDGE_0_2, EDGE_0_3}},
-    {{ EDGE_1_2, EDGE_1_3, EDGE_0_1}},
-    {{ EDGE_0_2, EDGE_1_2, EDGE_2_3}},
-    {{ EDGE_0_3, EDGE_1_3, EDGE_2_3}} }};
-
-// Given a node, this table provides the three connected faces.
-constexpr std::array<std::array<FaceIndex,3>,4> ADJACENT_FACES_TABLE {{
-    {{ FACE_0_1_2, FACE_0_2_3, FACE_0_3_1}},
-    {{ FACE_0_1_2, FACE_0_3_1, FACE_1_2_3}},
-    {{ FACE_0_1_2, FACE_0_2_3, FACE_1_2_3}},
-    {{ FACE_0_2_3, FACE_0_3_1, FACE_1_2_3}} }};
-
 // Given two edges, this table provides the edge that completes the
 // loop, ie. the last co-planar edge completing the face.
 constexpr EdgeIndex EDGE_COMPLETE_TABLE[7][7] =
-        //    EDGE_0_1  EDGE_0_2  EDGE_0_3  EDGE_1_2  EDGE_2_3  EDGE_1_3  NO_EDGE
-        {   { NO_EDGE,  EDGE_1_2, EDGE_1_3, EDGE_0_2, NO_EDGE,  EDGE_0_3, NO_EDGE,  },   // EDGE_0_1
-            { EDGE_1_2, NO_EDGE,  EDGE_2_3, EDGE_0_1, EDGE_0_3, NO_EDGE,  NO_EDGE,  },   // EDGE_0_2
-            { EDGE_1_3, EDGE_2_3, NO_EDGE,  NO_EDGE,  EDGE_0_2, EDGE_0_1, NO_EDGE,  },   // EDGE_0_3
-            { EDGE_0_2, EDGE_0_1, NO_EDGE,  NO_EDGE,  EDGE_1_3, EDGE_2_3, NO_EDGE,  },   // EDGE_1_2
-            { NO_EDGE,  EDGE_0_3, EDGE_0_2, EDGE_1_3, NO_EDGE,  EDGE_1_2, NO_EDGE,  },   // EDGE_2_3
-            { EDGE_0_3, NO_EDGE,  EDGE_0_1, EDGE_2_3, EDGE_1_2, NO_EDGE,  NO_EDGE,  },   // EDGE_1_3
-            { NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  },   // NO_EDGE
-        };
+    //    EDGE_0_1  EDGE_0_2  EDGE_0_3  EDGE_1_2  EDGE_2_3  EDGE_1_3  NO_EDGE
+    {   { NO_EDGE,  EDGE_1_2, EDGE_1_3, EDGE_0_2, NO_EDGE,  EDGE_0_3, NO_EDGE,  },   // EDGE_0_1
+        { EDGE_1_2, NO_EDGE,  EDGE_2_3, EDGE_0_1, EDGE_0_3, NO_EDGE,  NO_EDGE,  },   // EDGE_0_2
+        { EDGE_1_3, EDGE_2_3, NO_EDGE,  NO_EDGE,  EDGE_0_2, EDGE_0_1, NO_EDGE,  },   // EDGE_0_3
+        { EDGE_0_2, EDGE_0_1, NO_EDGE,  NO_EDGE,  EDGE_1_3, EDGE_2_3, NO_EDGE,  },   // EDGE_1_2
+        { NO_EDGE,  EDGE_0_3, EDGE_0_2, EDGE_1_3, NO_EDGE,  EDGE_1_2, NO_EDGE,  },   // EDGE_2_3
+        { EDGE_0_3, NO_EDGE,  EDGE_0_1, EDGE_2_3, EDGE_1_2, NO_EDGE,  NO_EDGE,  },   // EDGE_1_3
+        { NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  NO_EDGE,  },   // NO_EDGE
+    };
 
 
 ///////////////////////////////////////////////
@@ -78,6 +65,7 @@ Tetrahedron::Tetrahedron(TetMeshRef tet_mesh, TetNodeRef n0, TetNodeRef n1, TetN
     id_ = id;
     boundary_split_case_ = 0;
 
+    // Manage node connections
     nodes_[0] = n0;
     n0->ConnectTetrahedron(this);
     nodes_[1] = n1;
@@ -182,6 +170,7 @@ TetEdgeRef Tetrahedron::GetEdgeRef(EdgeIndex index) const {
 
 TetNodeRef Tetrahedron::SplitEdge(EdgeIndex index) {
 
+    // Check to see if the edge already has a midpoint, ie. it is split.
     if (!edges_[index]->HasMidpoint()) {
         auto mid = edges_[index]->MidpointPosition();
         auto mid_ref = tet_mesh_->AddNode(mid[0], mid[1], mid[2]);
@@ -193,6 +182,7 @@ TetNodeRef Tetrahedron::SplitEdge(EdgeIndex index) {
 
 TetNodeRef Tetrahedron::SplitEdge(int node0, int node1) {
 
+    // Find the edge that connects the two nodes and split it.
     auto edge_index = NODE_TABLE[node0][node1];
     return SplitEdge(edge_index);
 
@@ -200,6 +190,7 @@ TetNodeRef Tetrahedron::SplitEdge(int node0, int node1) {
 
 EdgeIndex Tetrahedron::GetEdgeIndex(TetEdgeRef edge) const {
 
+    // Find the edge and return it's index.
     for (auto index: {EDGE_0_1, EDGE_0_2, EDGE_0_3, EDGE_1_2, EDGE_2_3, EDGE_1_3}) {
         if (edges_[index] == edge)
             return index;
@@ -449,6 +440,7 @@ bool Tetrahedron::IsInverted() const {
 
 Real Tetrahedron::EdgeLengthRatio() const {
 
+    // Find shortest and longest edges.
     Real max_length = 0.0;
     Real min_length = std::numeric_limits<Real>::max();
 
@@ -567,20 +559,6 @@ TetEdgeRef Tetrahedron::ShortestEdge() const {
 
 }
 
-/*
-Real Tetrahedron::CalculateAspectRatio() {
-
-    // Aspect ratio is defined as maximum edge length divided by minimum altitude.
-    auto edge_lengths = GetMinMaxEdgeLengths();
-    auto altitude = GetMinAltitude();
-
-    quality_ = edge_lengths[1] / altitude;
-
-    return quality_;
-
-}
-*/
-
 Real Tetrahedron::Volume() const {
 
     auto edge03 = edges_[EDGE_0_3]->AsVector();
@@ -606,6 +584,7 @@ Real Tetrahedron::Inradius() const {
 
 Real Tetrahedron::Circumradius() const {
 
+    // From https://en.wikipedia.org/wiki/Tetrahedron
     auto a = (nodes_[1]->Position() - nodes_[0]->Position()).length();
     auto b = (nodes_[2]->Position() - nodes_[0]->Position()).length();
     auto c = (nodes_[3]->Position() - nodes_[0]->Position()).length();
@@ -645,14 +624,6 @@ Real Tetrahedron::QualityMeasure() const {
 
     return (ratio_sphere + ratio_length) / 2.0;
 
-}
-
-void Tetrahedron::CacheQualityMeasure() {
-    cached_quality_measure_ = QualityMeasure();
-}
-
-Real Tetrahedron::CachedQualityMeasure() const {
-    return cached_quality_measure_;
 }
 
 int Tetrahedron::CountInNodes() const {
@@ -732,6 +703,8 @@ void Tetrahedron::SplitBoundaryCrossingEdges() {
 
         if (!edge->HasMidpoint()) {
 
+            // If the edge is not already split, determine if it has one node flagged as
+            // IN and one node flagged as OUT. If so, split it.
             auto node0 = edge->GetFirstNode();
             auto node1 = edge->GetOtherNode(node0);
 

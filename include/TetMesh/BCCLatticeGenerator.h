@@ -11,13 +11,13 @@
 
 namespace destroyer {
 
-/*
+/*************************************************************************************
 
  ThreeDimVector class
 
  Three dimensional array container class.
 
-*/
+*************************************************************************************/
 
 template <class T>
 class ThreeDimVector
@@ -68,18 +68,18 @@ T ThreeDimVector<T>::get(int i, int j, int k) const {
 
 
 
-/*
+/*************************************************************************************
 
  BCCLatticeGenerator class
 
- Fills an empty TetMesh with a lattice of tetrahedrons comprising the triangulation of the
+ Fills an empty TetMesh with a lattice of tetrahedrons comprising the tetrahedralization of the
  body centered cubic lattice spanning the specified bounding box. Edge length of tetrahedra is specified.
 
  The BCC lattice consists of nodes at every point of a Cartesian grid along with the nodes located at the cell
  centers. These node locations may be viewed as belonging to two interlaced grids. The BCC lattice is the Delaunay
  complex of the interlaced grid nodes, and thus possesses all properties of a Delaunay tetrahedralization.
 
-*/
+*************************************************************************************/
 
 // Minimum number of BCC Lattice cells for each dimension
 #define MIN_GRID_COUNT 4.0

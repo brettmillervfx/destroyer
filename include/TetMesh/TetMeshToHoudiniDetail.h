@@ -12,15 +12,14 @@
 
 namespace destroyer {
 
-
-/*
+/*************************************************************************************
 
  TetMeshToHoudiniDetail
 
  Once a TetMesh has been fully formed, this class can be used to inject the geometry into
  a Houdini detail.
 
-*/
+*************************************************************************************/
 
 class TetMeshToHoudiniDetail {
 public:
@@ -30,13 +29,14 @@ public:
     // Converts the contained TetMesh into Houdini detail and writes into the contained gdp.
     void Convert();
 
+    // Converts only the boundary faces to a manifold mesh in the gdp.
     void ConvertBoundary();
 
-    void ConvertBoundaryFaces();
 
 private:
     void ConvertPoints(bool boundary_only=false);
     void ConvertTetrahedra();
+    void ConvertBoundaryFaces();
 
 private:
     TetMeshPtr tet_mesh_;

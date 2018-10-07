@@ -4,13 +4,14 @@
 
 #pragma once
 
-/*
-Forward declarations and type aliases for TetMesh classes.
-*/
+/*************************************************************************************
 
-//#include <Eigen/Dense>
+ Forward declarations and type aliases for TetMesh classes.
+
+*************************************************************************************/
+
+
 #include <UT/UT_Vector3.h>
-
 #include <memory>
 
 class GEO_PrimVDB;

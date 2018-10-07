@@ -76,6 +76,7 @@ void CompressionTetMesh::CompressBoundaryNodes(Real compression_amount) {
 
     for (auto& node: nodes_) {
 
+        // Move boundary nodes closer to the level set along the mesh normal, modulated by the compression step.
         if (node->IsBoundary()) {
 
             auto pos = node->Position();
@@ -101,10 +102,11 @@ void CompressionTetMesh::OptimizeNodes(Real initial_step, Real quality_threshold
 
 void CompressionTetMesh::Sweep(Real initial_step, Real quality_threshold) {
 
-    // Set up a random number gnerator.
+    // Set up a random number generator.
     std::random_device rd;
     RandomGenerator gen(rd());
 
+    // Adjust only the nodes of lower quality.
     for (auto& node: nodes_) {
         if ( (node->LocalQuality()-lowest_quality_)/(1.0-lowest_quality_) < quality_threshold)
             AdjustNode(node.get(), gen, initial_step);
@@ -113,6 +115,14 @@ void CompressionTetMesh::Sweep(Real initial_step, Real quality_threshold) {
 }
 
 void CompressionTetMesh::AdjustNode(TetNodeRef node, RandomGenerator generator, Real initial_step) {
+
+    // Adjust the position of the node using Pattern Search.
+    // The node is moved the full distance from it's original position along each
+    // vector in the pattern basis. The local quality of the the node is measured at each
+    // of these temporary positions. If a better quality is discovered at any of the test positions, the
+    // node is moved to the best position and the search is complete (for this iteration). If no better
+    // quality is found, the search distance is halved and the process is repeated. Each time, if the search does
+    // not yield a better quality, the distance is haved again. After MAX_STRIKES iterations, the search quits.
 
     auto current_quality = QualityMetric(node);
     auto current_pos = node->Position();
@@ -162,6 +172,11 @@ void CompressionTetMesh::AdjustNode(TetNodeRef node, RandomGenerator generator, 
 
 std::vector<Vec3> CompressionTetMesh::ConstructRandomPatternBasis(TetNodeRef node, RandomGenerator generator) const {
 
+    // A search pattern is generated for the pattern search. If the node is interios, the search pattern will be
+    // the interior template (INTERIOR_SEARCH_PATTERN_SIZE vectors evently distributed on the sphere) oriented randomly.
+    // Boundary nodes will get a search pattern of BOUNDARY_SEARCH_PATTERN_SIZE of vectors distributed evenly
+    // in the tangent plane disc (the boundary template rotated randomly in the plane.)
+
     std::vector<Vec3> pattern;
 
     std::uniform_real_distribution<> dist(-1.0, 1.0);
@@ -208,6 +223,10 @@ std::vector<Vec3> CompressionTetMesh::ConstructRandomPatternBasis(TetNodeRef nod
 
 Real CompressionTetMesh::QualityMetric(TetNodeRef node) const {
 
+    // The quality measure of a node, ie. the value to be minimized, is the sum of
+    // the inverse quality of the incident tetrahedra. A power function is applied to the
+    // denominator to accentuate the difference between similar values.
+
     auto total_quality = 0.0;
 
     for (auto& tet: node->GetIncidentTets()) {
@@ -220,6 +239,8 @@ Real CompressionTetMesh::QualityMetric(TetNodeRef node) const {
 }
 
 void CompressionTetMesh::FindLowestQuality() {
+
+    // Returns the quality of the tet with the lowest quality inthe mesh.
 
     lowest_quality_ = std::numeric_limits<Real>::max();
 

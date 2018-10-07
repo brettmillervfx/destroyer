@@ -16,21 +16,6 @@ VDBSampler::VDBSampler(VDBGridPtr vdb) {
 
     vdb_ = vdb;
     background_ = EvaluateBackgroundValue();
-    apply_fit_ = false;
-    fit_min_ = 0.0;
-    fit_max_ = 1.0;
-
-}
-
-VDBSampler::VDBSampler(VDBGridPtr vdb, Real min, Real max) {
-
-    assert( fabs(max-min) > std::numeric_limits<Real>::epsilon() );
-
-    vdb_ = vdb;
-    background_ = EvaluateBackgroundValue();
-    apply_fit_ = true;
-    fit_min_ = min;
-    fit_max_ = max;
 
 }
 
@@ -38,40 +23,21 @@ VDBSampler::VDBSampler(const GU_Detail *detail) {
 
     vdb_ = LoadSDF(detail);
     background_ = EvaluateBackgroundValue();
-    apply_fit_ = false;
-    fit_min_ = 0.0;
-    fit_max_ = 1.0;
-
-}
-
-VDBSampler::VDBSampler(const GU_Detail *detail, Real min, Real max) {
-
-    assert( fabs(max-min) > std::numeric_limits<Real>::epsilon() );
-
-    vdb_ = LoadSDF(detail);
-    background_ = EvaluateBackgroundValue();
-    apply_fit_ = true;
-    fit_min_ = min;
-    fit_max_ = max;
 
 }
 
 UT_BoundingBox VDBSampler::GetBBox() const {
+
     UT_BoundingBox bbox;
     vdb_->getBBox(&bbox);
     return bbox;
+
 }
 
 Real VDBSampler::Sample(Real x, Real y, Real z) const {
 
     UT_Vector3 p(x,y,z);
     auto sample = vdb_->getValueF(p);
-
-    if (apply_fit_) {
-        sample = (sample - fit_min_)  / (fit_max_ / fit_min_);
-        sample = (sample>1.0) ? 1.0 : sample;
-        sample = (sample<0.0) ? 0.0 : sample;
-    }
 
     return sample;
 

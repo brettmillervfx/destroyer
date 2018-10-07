@@ -18,16 +18,19 @@ namespace destroyer {
 
 bool CollapseTetMesh::Cleanup(Real quality_threshold, int max_iter) {
 
-    auto iter = max_iter;
+    // Doe will be true when no low quality tets are discoveres.
     bool done = false;
+
+    // We set iter to the maximum interation count then count down to 0.
+    auto iter = max_iter;
     while ((iter > 0) & !done) {
 
         done = false;
 
+        // We use the edge length ratio as a quality hueristic. Collect all tets that currently
+        // exhibit low quality according to this measure.
         std::list<TetrahedronRef> tet_list;
         for (auto& tet: tets_) {
-            //tet.first->CacheQualityMeasure();
-            //if (tet.first->CachedQualityMeasure() < quality_threshold)
             if (tet.first->EdgeLengthRatio() < quality_threshold)
                 tet_list.push_back(tet.first);
         }
@@ -39,9 +42,9 @@ bool CollapseTetMesh::Cleanup(Real quality_threshold, int max_iter) {
             std::cout << "collapsing " << tet_list.size() << std::endl;
 
             // Sort tets by ascending quality
-            //tet_list.sort([](const TetrahedronRef &a, const TetrahedronRef &b) {
-            //    return a->CachedQualityMeasure() < b->CachedQualityMeasure();
-            //});
+            tet_list.sort([](const TetrahedronRef &a, const TetrahedronRef &b) {
+                return a->EdgeLengthRatio() < b->EdgeLengthRatio();
+            });
 
             // Identify the shortest edge for collapse.
             std::vector<TetEdgeRef> collapse_edges;
@@ -64,6 +67,7 @@ bool CollapseTetMesh::Cleanup(Real quality_threshold, int max_iter) {
                 auto mid_pos = (node0->Position() + node1->Position()) / 2.0;
                 node0->SetPosition(mid_pos);
 
+                // Replace the node in all topology objects.
                 for (auto& incident_tet: node1->GetIncidentTets()) {
                     if (std::find(delete_tets.begin(), delete_tets.end(), incident_tet) == delete_tets.end())
                         incident_tet->ReplaceNode(node1, node0);
@@ -79,6 +83,7 @@ bool CollapseTetMesh::Cleanup(Real quality_threshold, int max_iter) {
 
             }
 
+            // Remove collapsed nodes.
             for (auto& tet: delete_tets)
                 DeleteTetrahedron(tet);
 

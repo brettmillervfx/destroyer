@@ -7,8 +7,11 @@
  TetMesh implementation
 
  TetMesh owns all topology objects, ie. Nodes, Tets, Edges, and Faces. TetMesh owns all objects (as Ptrs)
- and the other objects are "connected" to each other via Refs. Only a Ptr may be deleted. Refs a re essentially
- weak pointers to Ptrs and must be handled carefully.
+ and the other objects are "connected" to each other via Refs. Only a Ptr may be deleted. Refs are essentially
+ weak pointers to Ptrs and must be handled carefully. Generally, only the TetMesh may allocate and de-allocate
+ topology objects. Tetrahedrons are an exception, however. When a Tetrahedron is created, it is passed a reference
+ to it's owner TetMesh. The Tetrahedron allocates it's edges and faces and registers the objects with the owner
+ TetMesh. The TetMesh becomes the owner of the new topology and is responsible for de-allocation.
 
  Tetrahedrons connect to:
     4 TetNodes, 6 TetEdges, 4 TetFaces
@@ -27,16 +30,15 @@
     A new TetNode is added without any connections.
 
  When the TetMesh deletes a TetNode...
-    The TetNode is simply removed if it is not connected to a Tetrahedron.
+    The TetNode is simply deallocated. All topological references shpould be resolved before this is invoked.
 
  When the TetMesh creates a Tetrahedron...
     Tetrahedron connects nodes to itself.
     Tetrahedron connects itself to the nodes.
-    Tetrahedron determines if edges already exist between nodes and instantiates missing edges.
+    Tetrahedron determines if edges already exist between nodes and has TetMesh instantiate missing edges.
         Tetrahedron connects edges to itself.
         Tetrahedron connects itself to edges.
-        New edges that are created are passed back to TetMesh.
-    Tetrahedron determines if faces already exist between edges and instantiates missing faces.
+    Tetrahedron determines if faces already exist between edges and has TetMesh instantiate missing faces.
         Tetrahedron connects faces to itself.
         Tetrahedron connects itself to faces.
         New faces that are created are passed back to TetMesh.
@@ -99,6 +101,7 @@ TetMesh::~TetMesh() {
 
 bool TetMesh::IsEmpty() const {
 
+    // No nodes == no topology
     return nodes_.empty();
 
 }
@@ -115,6 +118,8 @@ void TetMesh::TearDown() {
 
 TetNodeRef TetMesh::AddNode(Real x, Real y, Real z, Index id) {
 
+    // Add a new Node without any topological connections.
+
     auto new_node_ref = new TetNode(x,y,z,id);
 
     if (sampler_ != nullptr)
@@ -126,28 +131,25 @@ TetNodeRef TetMesh::AddNode(Real x, Real y, Real z, Index id) {
 
 }
 
-TetEdgeRef TetMesh::AddEdge(TetNodeRef node0, TetNodeRef node1) {
+TetrahedronRef TetMesh::AddTetrahedron(TetNodeRef n0,
+                                       TetNodeRef n1,
+                                       TetNodeRef n2,
+                                       TetNodeRef n3,
+                                       Index id) {
 
-    auto new_edge_ref = new TetEdge(node0, node1);
+    // The new Tetrahedron will create Edges and Faces in this TetMesh upon instantiation.
+    auto new_tet_ref = new Tetrahedron(this, n0, n1, n2, n3, id);
 
-    edges_[new_edge_ref] = TetEdgePtr(new_edge_ref);
+    // Register the new tetrahedron.
+    tets_[new_tet_ref] = TetrahedronPtr(new_tet_ref);
 
-    return new_edge_ref;
-
-}
-
-TetFaceRef TetMesh::AddFace(TetEdgeRef edge0, TetEdgeRef edge1, TetEdgeRef edge2) {
-
-    auto new_face_ref = new TetFace(edge0, edge1, edge2);
-
-    faces_[new_face_ref] = TetFacePtr(new_face_ref);
-
-    return new_face_ref;
+    return new_tet_ref;
 
 }
 
 void TetMesh::DeleteUnusedTopology() {
 
+    // Eliminate disconnected faces.
     auto faces_iter = faces_.begin();
     while(faces_iter != faces_.end()) {
         if (!faces_iter->second->IsConnected()) {
@@ -157,6 +159,7 @@ void TetMesh::DeleteUnusedTopology() {
         }
     }
 
+    // Eliminiate disconnected edges.
     auto edges_iter = edges_.begin();
     while(edges_iter != edges_.end()) {
         if (!edges_iter->second->IsConnected()) {
@@ -166,6 +169,7 @@ void TetMesh::DeleteUnusedTopology() {
         }
     }
 
+    // Eliminate disconnected nodes.
     auto nodes_iter = nodes_.begin();
     while(nodes_iter != nodes_.end()) {
         if (!(*nodes_iter)->IsConnected()) {
@@ -178,23 +182,10 @@ void TetMesh::DeleteUnusedTopology() {
 }
 
 void TetMesh::DeleteTetrahedron(TetrahedronRef tet) {
+
     tets_.erase(tet);
-}
-
-TetrahedronRef TetMesh::AddTetrahedron(TetNodeRef n0,
-                                       TetNodeRef n1,
-                                       TetNodeRef n2,
-                                       TetNodeRef n3,
-                                       Index id) {
-
-    // Insert the new node at the head of the node list.
-    auto new_tet_ref = new Tetrahedron(this, n0, n1, n2, n3, id);
-    tets_[new_tet_ref] = TetrahedronPtr(new_tet_ref);
-
-    return new_tet_ref;
 
 }
-
 
 void TetMesh::CullOutsideTets(int cull_depth) {
 
@@ -272,5 +263,24 @@ TetFaceRef TetMesh::NextFace() {
 
 }
 
+TetEdgeRef TetMesh::AddEdge(TetNodeRef node0, TetNodeRef node1) {
+
+    auto new_edge_ref = new TetEdge(node0, node1);
+
+    edges_[new_edge_ref] = TetEdgePtr(new_edge_ref);
+
+    return new_edge_ref;
+
+}
+
+TetFaceRef TetMesh::AddFace(TetEdgeRef edge0, TetEdgeRef edge1, TetEdgeRef edge2) {
+
+    auto new_face_ref = new TetFace(edge0, edge1, edge2);
+
+    faces_[new_face_ref] = TetFacePtr(new_face_ref);
+
+    return new_face_ref;
+
+}
 
 }; // namespace destroyer

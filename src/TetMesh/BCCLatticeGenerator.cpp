@@ -13,6 +13,13 @@
 
 namespace destroyer {
 
+/*
+
+ BCCLatticeGenerator uses the method described in "Tetrahedral mesh generation based on space indicator functions",
+ Friess, et al. By rotating the standard BCC lattice 45 degrees around its x axis, we dramatically simplify filling the
+ structure by defining a template of tetrahedrons that easily tile on the resulting irregular lattice of nodes.
+
+*/
 
 BCCLatticeGenerator::BCCLatticeGenerator(TetMeshPtr tet_mesh, Real edge_length,
                                          Real min_x, Real min_y, Real min_z,
@@ -20,6 +27,9 @@ BCCLatticeGenerator::BCCLatticeGenerator(TetMeshPtr tet_mesh, Real edge_length,
 
     tet_mesh_ = tet_mesh;
 
+    // The transformed lattice of nodes is irregular: the normally cubic grid is forshortened
+    // in the x axis. The lengths of the grid intervals result in tetrahedral edges of the desired
+    // length. See the Friess paper for illustrations.
     yz_edge_length_ = (sqrt(2.0)*edge_length) / 2.0;
     x_edge_length_ = edge_length / 2.0;
 
@@ -46,6 +56,10 @@ void BCCLatticeGenerator::FillTetMesh() {
 
 void BCCLatticeGenerator::AdjustTesselatedSpace(Real min_x, Real min_y, Real min_z,
                                                 Real max_x, Real max_y, Real max_z) {
+
+    // Adjust the bounding box by expanding it to fit an integer number of cells in
+    // each dimension, then pad it to ensure that the grid has the minimum number of cells
+    // to allow a full template stamp. Calculate the index extents in each dimension.
 
     // Get the length of the bounding box and the center.
     auto length_x = max_x - min_x;
@@ -75,6 +89,9 @@ void BCCLatticeGenerator::AdjustTesselatedSpace(Real min_x, Real min_y, Real min
 
 BCCLatticeGenerator::GridPtr BCCLatticeGenerator::GenerateGridNodes() {
 
+    // Build a 3D grid of nodes at the (irregular) intervals prescribed by the transformed BCC lattice and
+    // add those nodes to the TetMesh object.
+
     // Allocate the three dimensional point reference.
     auto grid = GridPtr (new ThreeDimVector<TetNodeRef>(element_count_[0], element_count_[1], element_count_[2]));
 
@@ -93,6 +110,9 @@ BCCLatticeGenerator::GridPtr BCCLatticeGenerator::GenerateGridNodes() {
 }
 
 void BCCLatticeGenerator::GenerateTetrahedraTemplate(Index originx, Index originy, Index originz) {
+
+    // Stamp the tetrahedral tile into the TetMesh at the specified origin nodes. See the paper
+    // for an illustration of the template.
 
     // Get pointers to the nodes of the template.
     TetNodeRef node_a = grid_->get(originx, originy, originz+1);

@@ -14,6 +14,7 @@ namespace destroyer {
 
 TetFace::TetFace(TetEdgeRef e0, TetEdgeRef e1, TetEdgeRef e2) {
 
+    // Establish edge connections
     edges_[0] = e0;
     edges_[0]->ConnectFace(this);
     edges_[1] = e1;
@@ -21,6 +22,7 @@ TetFace::TetFace(TetEdgeRef e0, TetEdgeRef e1, TetEdgeRef e2) {
     edges_[2] = e2;
     edges_[2]->ConnectFace(this);
 
+    // Establish node connections. Nodes are implied from the connected edges.
     nodes_[0] = edges_[0]->GetFirstNode();
     nodes_[0]->ConnectFace(this);
     nodes_[1] = edges_[0]->GetOtherNode(nodes_[0]);
@@ -35,6 +37,8 @@ TetFace::TetFace(TetEdgeRef e0, TetEdgeRef e1, TetEdgeRef e2) {
 }
 
 TetFace::~TetFace() {
+
+    // Before deletion, manage edges and node disconnections.
 
     for (auto& node: nodes_) {
         node->DisconnectFace(this);
@@ -74,7 +78,7 @@ TetrahedronRef TetFace::GetOtherTet(TetrahedronRef tet) const {
 
 }
 
-TetEdgeRef TetFace::GetOppositeEdge(const TetNodeRef node) const {
+TetEdgeRef TetFace::GetOppositeEdge(TetNodeRef node) const {
 
     // The edge that does not contain the node is opposite of the node.
     for (auto edge_index: {0,1,2}) {
@@ -85,37 +89,13 @@ TetEdgeRef TetFace::GetOppositeEdge(const TetNodeRef node) const {
 
 }
 
-TetEdgeRef TetFace::GetRightEdge(TetNodeRef node) const {
-
-    // The edge that does not contain the node is opposite of the node.
-    // The edge preceeding it is the Right edge.
-    for (auto edge_index: {0,1,2}) {
-        if (!edges_[edge_index]->HasNode(node))
-            return edges_[(edge_index-1)%3];
-    }
-    return nullptr;
-
-}
-
-TetEdgeRef TetFace::GetLeftEdge(TetNodeRef node) const {
-
-    // The edge that does not contain the node is opposite of the node.
-    // The edge following it is the Left edge.
-    for (auto edge_index: {0,1,2}) {
-        if (!edges_[edge_index]->HasNode(node))
-            return edges_[(edge_index+1)%3];
-    }
-    return nullptr;
-
-}
-
-
 void TetFace::ReplaceEdge(TetEdgeRef edge) {
 
     // Which edge is it?
     auto node0 = edge->GetFirstNode();
     auto node1 = edge->GetOtherNode(node0);
 
+    // Find the edge that has the same nodes as the input and swap it out.
     for (int i: {0,1,2}) {
         if (edges_[i]->HasNode(node0) & edges_[i]->HasNode(node1)) {
             if (edges_[i] != edge) {
@@ -179,12 +159,14 @@ bool TetFace::HasEdge(TetEdgeRef edge) const {
 
 Vec3 TetFace::Normal(TetrahedronRef owner_tet) const {
 
+    // To calculate the normal, we build vectors forming two edges and find the cross product.
     auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
     auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
 
     auto normal = cross(edge0, edge1);
 
     // Ensure that the vector is facing out from the tetrahedron.
+    // Flip it if it's facing inward.
     Vec3 out_vector(0.0,0.0,0.0);
     if (owner_tet == nullptr) {
         out_vector = Centroid() - incident_tets_[0]->Centroid();
@@ -202,6 +184,7 @@ Vec3 TetFace::Normal(TetrahedronRef owner_tet) const {
 
 Real TetFace::EdgeLengthRatio() const {
 
+    // Find the shortest and longest edges of the face.
     Real max_length = 0.0;
     Real min_length = std::numeric_limits<Real>::max();
 
@@ -219,8 +202,12 @@ Real TetFace::EdgeLengthRatio() const {
 
 Real TetFace::MinNodeAltitude() const {
 
-    Real min_altitude = std::numeric_limits<Real>::max();
+    // Altitude is calculated by finding the plane of the opposite face (as a plane normal) and
+    // projecting an arbitrary vector from a point on that plane to the node onto the orthogonal normal.
+    // The length of the projected vector is the altutude.
 
+    // Find the shortest altitude.
+    Real min_altitude = std::numeric_limits<Real>::max();
     for (auto& node: nodes_) {
         auto pos = node->Position();
         auto opposite_edge = GetOppositeEdge(node);
@@ -256,8 +243,10 @@ Real TetFace::MaxAngle() const {
 
     Real node_angle = 0.0;
 
+    // Cache the node positions.
     std::array<Vec3,3> points {{nodes_[0]->Position(),  nodes_[1]->Position(), nodes_[2]->Position()}};
 
+    // Find the angle at each node by the dot product of the vectors from this node to the adjacent nodes.
     for (auto node_index: {0,1,2}) {
         Vec3 left = points[(node_index-1)%3] - points[node_index];
         left.normalize();
@@ -277,6 +266,7 @@ Real TetFace::MaxAngle() const {
 
 Real TetFace::Area() const {
 
+    // Area of the triangle is half the area of the parallelogram defined by two of the triangle's edges.
     auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
     auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
     auto area = cross(edge0,edge1).length() / 2.0;
@@ -330,13 +320,21 @@ Real TetFace::Semiperimeter() const {
 
 Real TetFace::QualityMeasure() const {
 
+    // We consider the measure of quality the average of two values:
+    // The Ratio of Inradius / Circumradius normalize so that 1.0 represents an equilateral triangle, and
+    // smallest altitude over longest edge, normalize so that 1.0 represents an equilateral triangle.
     auto ratio = 2.0 * (Inradius() / Circumradius());
-    auto edge_to_alt = MinNodeAltitude() / MaxEdgeLength();
+    Real normalize_factor = sqrt(3) / 2.0;
+    auto edge_to_alt = (MinNodeAltitude()/normalize_factor) / MaxEdgeLength();
     return (ratio + edge_to_alt) / 2.0;
 
 }
 
 void TetFace::CorrectWinding() {
+
+    // Find the face normal of the polygon using left hand rule.
+    // If the resulting normal faces inward to the first (and possibly only) tet,
+    // swap two nodes to reverse the winding order.
 
     auto edge0 = nodes_[1]->Position() - nodes_[0]->Position();
     auto edge1 = nodes_[2]->Position() - nodes_[0]->Position();
